@@ -6,27 +6,31 @@ components below are used under their own terms.
 ## ProsperoPkgTool
 
 The PS5 PKG (FIH/CNT/PFS/NAPS) reading, verification, extraction and debug-package creation
-implementation is provided by the clean-room MIT engine ProsperoPkgTool, consumed as a vendored
-managed library at `PS5PKGTool/ThirdParty/ProsperoPkgTool/ProsperoPkgTool.dll`.
+implementation is provided by the clean-room MIT engine ProsperoPkgTool. It is consumed as a git
+submodule at `third_party/ProsperoPkgTool`
+(https://github.com/pearlxcore/ProsperoPkgTool) and compiled from source together with the
+application, so no prebuilt engine assembly is distributed.
 
 MIT License. Copyright (c) 2026 pearlxcore. No GPL, SDK, or decompiled code is included; the
-engine is a clean-room reimplementation validated against independent oracles.
+engine is a clean-room reimplementation validated against independent oracles. The upstream license
+text ships at `third_party/ProsperoPkgTool/LICENSE`.
 
 ## LibProsperoPkg
 
-The alternative package build/validate/extract backend is provided by LibProsperoPkg, loaded from a
-vendored payload at `PS5PKGTool/ThirdParty/LibProsperoPkg12/` (version **1.2.0** - the version the
-PPR-PKG / fpkg-gui builder ships; the newer 2.6.0 regressed the NAPS layout). It is loaded in an
-isolated assembly-load context together with its bundled dependencies: `BCnEncoder.Net 2.3.0`,
-`CommunityToolkit.HighPerformance 8.4.0`, `Magick.NET 14.15.0` (managed + its
-`runtimes/win-x64/native/Magick.Native-Q8-x64.dll`), and `libScePubTools.dll`.
+The alternative package build/validate/extract backend is provided by LibProsperoPkg. It is consumed
+as a git submodule at `third_party/LibProsperoPkg`
+(https://github.com/SvenGDK/LibProsperoPKG) and compiled from source together with the
+application, so no prebuilt engine assembly is distributed. The upstream library has no package
+dependencies of its own, so it is linked directly instead of being loaded in an isolated
+assembly-load context.
 
 GNU General Public License v3.0 or later (GPL-3.0-or-later).
-Copyright (c) SvenGDK 2026. https://github.com/SvenGDK/LibProsperoPkg
+Copyright (c) SvenGDK 2026. https://github.com/SvenGDK/LibProsperoPKG
 
 Because LibProsperoPkg is GPL-3.0-or-later and PS5 PKG Tool links it, the combined work is
 distributed under the GPL-3.0 (see `LICENSE`). The full license text ships at
-`PS5PKGTool/ThirdParty/LibProsperoPkg12/LICENSE`.
+`third_party/LibProsperoPkg/LICENSE`, and the upstream attribution notice at
+`third_party/LibProsperoPkg/NOTICE`.
 
 ## UFS2Tool
 
@@ -52,9 +56,10 @@ It is the managed wrapper used to load the native Oodle decoder.
 
 ## Oodle Data Compression
 
-PS5PKGTool includes the 64 bit Oodle Data Compression 2.9.10 redistributable
-`oo2core_9_win64.dll`. Oodle is proprietary Licensed Technology supplied by Epic Games
-and RAD Game Tools and is used under the Unreal Engine End User License Agreement:
+PS5PKGTool includes the 64 bit Oodle Data Compression 2.9.10 redistributables
+`oo2core_9_win64.dll` (Windows) and `liboo2corelinux64.so.9` (Linux). Oodle is proprietary
+Licensed Technology supplied by Epic Games and RAD Game Tools and is used under the Unreal Engine
+End User License Agreement:
 https://www.unrealengine.com/eula/unreal
 
 Copyright Epic Games, Inc. and/or RAD Game Tools. All rights reserved.
@@ -66,7 +71,8 @@ applicable law, PS5PKGTool makes no representations or warranties and accepts no
 or liabilities relating to Epic Games' or RAD Game Tools' Licensed Technology.
 
 Bundled file SHA256:
-`6F5D41A7892EA6B2DB420F2458DAD2F84A63901C9A93CE9497337B16C195F457`
+`6F5D41A7892EA6B2DB420F2458DAD2F84A63901C9A93CE9497337B16C195F457` (oo2core_9_win64.dll)
+`ED7E98F70BE1254A80644EFD3AE442FF61F854A2FE9DEBB0B978B95289884E9C` (liboo2corelinux64.so.9)
 
 ## PS4 PKG Tool assets
 

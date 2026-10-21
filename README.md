@@ -63,7 +63,7 @@ Every long action runs on the Tasks tab; the form only queues work and reports p
 - Read, verify, and extract debug PS5 packages (FPKG), including inner PFS browsing, trophies, activities, and PlayGo data.
 - Build a debug package from an unpacked dump or directly from an image. The Content ID is read from the source automatically and the passcode is configurable; an optional seed gives byte reproducible output.
 - Choose the builder: `LibProsperoPkg` (the default) or `ProsperoPkgTool`, the app's own internal FPKG builder, which is an alternative to LibProsperoPkg and is still experimental.
-- Build settings include inner compression (Auto - Kraken where it helps, Kraken forced, or Uncompressed), Kraken level and thread count, PlayGo chunk count (default 1), an SDK version override, and an optional workspace folder. Package type is APP; AC (additional content) is not supported yet.
+- Build settings include inner compression (Auto - Kraken where it helps, Kraken forced, or Uncompressed), Kraken level and thread count, PlayGo chunk count (default 1), an SDK version override, and an optional workspace folder. Package type is APP; AC (additional content) is not supported yet. Settings a builder does not implement are disabled instead of being silently ignored.
 - Convert a debug package to exFAT, FFPKG, or FFPFSC.
 - Retail packages are recognized but cannot be decoded without matching image key material. Only debug packages built with the default or a known passcode are fully readable.
 
@@ -77,7 +77,7 @@ Every long action runs on the Tasks tab; the form only queues work and reports p
 **Native Frameworks**
 
 - exFAT, UFS2/FFPKG, PFSC, and PFS are implemented in managed C#.
-- PS5 package reading, verification, extraction, and debug package creation use the clean room MIT engine ProsperoPkgTool as a managed library.
+- PS5 package reading, verification, extraction, and debug package creation use the clean room MIT engine ProsperoPkgTool, compiled from source.
 - Kraken metadata is decoded through the bundled Oodle 2.9.10 decoder. See `THIRD_PARTY_NOTICES.md` for the Oodle license and redistribution restrictions.
 
 # Settings
@@ -97,7 +97,7 @@ your folders, sources, recent folders and saved views.
 4. Pick a **builder**:
    - `LibProsperoPkg` - the default third-party builder.
    - `ProsperoPkgTool` - the app's own internal FPKG builder, offered as an alternative to LibProsperoPkg. It is **still experimental**; see the note below.
-5. Optionally tick **Advanced options** to set compression (Auto / Kraken / Uncompressed), Kraken level and thread count, PlayGo chunks, package type, an SDK version override, a workspace folder, DRM handling, and fake-sign / right.sprx injection.
+5. Optionally tick **Advanced options** to set compression (Auto / Kraken / Uncompressed), Kraken level and thread count, PlayGo chunks, package type, an SDK version override, a workspace folder, DRM handling, and fake-sign / right.sprx injection. The `LibProsperoPkg` builder only takes the DRM handling from this list; its other knobs are disabled.
 6. Run. Free disk space is checked before the build starts, the package is written to the output path, and progress is shown stage by stage on the Tasks tab.
 
 > **Note:** ProsperoPkgTool is the app's own internal package builder, provided alongside LibProsperoPkg. It is still experimental - output has been validated on PC but not on jailbroken PS5 hardware. Keep originals and verify any produced package before relying on it.
@@ -110,11 +110,27 @@ The release build is self-contained and includes the .NET runtime, so nothing el
 
 # Building from source
 
-Building from source also needs the [DarkUI](https://github.com/pearlxcore/DarkUI) project. Clone it next to this repository (same parent folder, folder named `DarkUI`) so the project reference resolves:
+The PS5 package engines are **compiled from source** and pulled in as git submodules, so a clone
+without them cannot build:
+
+- [`third_party/ProsperoPkgTool`](https://github.com/pearlxcore/ProsperoPkgTool) - the clean-room MIT
+  package engine used for reading, verifying, extracting and building FPKGs.
+- [`third_party/LibProsperoPkg`](https://github.com/SvenGDK/LibProsperoPKG) - the alternative
+  GPL-3.0 package build/validate/extract backend.
+
+Building from source also needs the [DarkUI](https://github.com/pearlxcore/DarkUI) project. Clone it
+next to this repository (same parent folder, folder named `DarkUI`) so the project reference
+resolves:
 
 ```
 git clone https://github.com/pearlxcore/DarkUI
-git clone https://github.com/pearlxcore/PS5PKGTool
+git clone --recurse-submodules https://github.com/pearlxcore/PS5PKGTool
+```
+
+If you already cloned the repository without `--recurse-submodules`, fetch the engines with:
+
+```
+git submodule update --init --recursive
 ```
 
 Then build with the .NET 10 SDK.
