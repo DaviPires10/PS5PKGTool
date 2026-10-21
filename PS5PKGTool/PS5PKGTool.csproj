@@ -29,8 +29,8 @@
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
     </Content>
-    <Content Include="ThirdParty\LibProsperoPkg12\**\*">
-      <Link>LibProsperoPkg12\%(RecursiveDir)%(Filename)%(Extension)</Link>
+    <Content Include="ThirdParty\Oodle\liboo2corelinux64.so.9">
+      <Link>liboo2corelinux64.so.9</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>

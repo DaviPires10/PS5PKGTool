@@ -383,15 +383,18 @@ public partial class MainForm
         // Controls a backend does not implement are disabled rather than left editable-but-ignored, so
         // the UI never implies an option was honoured when the library never receives it.
         IPackageBackend backend = SelectedBackend();
+        BackendCapabilities capabilities = backend.Capabilities;
         bool lpp = showDebug && backend.Id == BackendRegistry.LppId;
-        cboImageCompression.Enabled = true;
-        cboImageKrakenLevel.Enabled = true;
-        nudImageKrakenThreads.Enabled = true;
-        nudImagePlayGoChunks.Enabled = true;
-        chkImageDeterministic.Enabled = true;
-        // LibProsperoPkg 1.2.0 receives neither a fake-sign nor an inject-right.sprx option.
+        // The knobs only matter for a debug-package build; outside one they stay editable.
+        bool compressionKnobs = !showDebug || capabilities.SupportsCompressionKnobs;
+        cboImageCompression.Enabled = compressionKnobs;
+        cboImageKrakenLevel.Enabled = compressionKnobs;
+        nudImageKrakenThreads.Enabled = compressionKnobs;
+        nudImagePlayGoChunks.Enabled = !showDebug || capabilities.SupportsPlayGoChunks;
+        chkImageDeterministic.Enabled = !showDebug || capabilities.SupportsSeed;
+        // LibProsperoPkg receives neither a fake-sign nor an inject-right.sprx option.
         chkImageFakeSign.Enabled = !lpp;
-        chkImageRightSprx.Enabled = !lpp;
+        chkImageRightSprx.Enabled = !showDebug || capabilities.SupportsRightSprxToggle;
         if (showDebug)
         {
             string compression = cboImageCompression.SelectedIndex switch { 1 => "Kraken", 2 => "stored", _ => "auto" };
@@ -406,8 +409,8 @@ public partial class MainForm
                     : " · image source: built directly (no extract)";
             }
             if (lpp)
-                summary += " · LibProsperoPkg applies SDK, DRM, compression, Kraken, PlayGo and workspace; it does " +
-                    "not receive fake-sign or right.sprx, and Auto and Kraken (force) give the same result.";
+                summary += " · LibProsperoPkg builds from the folder using the content id, passcode and DRM " +
+                    "type; it does not receive the SDK, compression, Kraken, PlayGo, seed or workspace options.";
             lblImageStatus.Text = summary;
         }
 
@@ -1055,20 +1058,21 @@ public partial class MainForm
     }
 
     /// <summary>
-    /// Mirrors the fpkg-gui (LibProsperoPkg.Gui 0.6.4) build defaults: Kraken backend Automatic
-    /// (Auto compression), Kraken level 7 (Optimal3), threads 0 (auto), PlayGo chunks 64,
-    /// Deterministic build on, plus the embedded debug right.sprx. SDK stays Auto (from source).
+    /// The build knobs LibProsperoPkg actually receives: only the DRM bucket (applied to
+    /// <c>sce_sys/param.json</c>) and the content id and passcode. The SDK, compression, Kraken,
+    /// PlayGo, seed and workspace options are not part of the upstream builder, so they stay at their
+    /// neutral values here.
     /// </summary>
     private void ApplyLppDefaults()
     {
         cboImageCompression.SelectedIndex = 0;                      // Automatic (Kraken where it helps)
         cboImageKrakenLevel.SelectedIndex = IndexOfKrakenLevel(7);  // 7 - Optimal3
         nudImageKrakenThreads.Value = Math.Clamp(0, nudImageKrakenThreads.Minimum, nudImageKrakenThreads.Maximum);
-        nudImagePlayGoChunks.Value = Math.Clamp(64, nudImagePlayGoChunks.Minimum, nudImagePlayGoChunks.Maximum);
+        nudImagePlayGoChunks.Value = Math.Clamp(1, nudImagePlayGoChunks.Minimum, nudImagePlayGoChunks.Maximum);
         if (cboImageSdk.Items.Count > 0)
             cboImageSdk.SelectedIndex = 0;                          // Auto (from source)
-        chkImageRightSprx.Checked = true;
-        chkImageDeterministic.Checked = true;
+        chkImageRightSprx.Checked = false;
+        chkImageDeterministic.Checked = false;
     }
 
     private void chkImageAdvancedOptions_CheckedChanged(object? sender, EventArgs e) => UpdateImageOptionVisibility();
@@ -1266,7 +1270,7 @@ public partial class MainForm
         IPackageBackend effective = isDirectory || stageFromImage ? backend : BackendRegistry.Get(BackendRegistry.PptId);
         if (effective.Id == BackendRegistry.LppId && !settings.InjectRightSprx)
         {
-            Logger.Info("LibProsperoPkg 1.2.0 has no inject-right.sprx toggle; the source right.sprx is kept as-is.");
+            Logger.Info("LibProsperoPkg has no inject-right.sprx toggle; the source right.sprx is kept as-is.");
         }
 
         string? staging = null;

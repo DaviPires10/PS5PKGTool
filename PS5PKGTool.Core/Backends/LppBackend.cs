@@ -6,12 +6,12 @@ using ProsperoPkgTool.Containers;
 namespace PS5PKGTool.Core.Backends;
 
 /// <summary>
-/// The LibProsperoPkg backend, using the vendored <b>1.2.0</b> build (the version the working
-/// PPR-PKG/fpkg-gui ships) loaded in an isolated context by <see cref="LibProsperoPkg12"/>. Unlike
-/// the newer 2.6.0, 1.2.0 lays out large titles correctly and exposes SDK, compression, Kraken,
-/// PlayGo, deterministic and workspace options. Builds run from an unpacked folder; image sources
-/// are not supported. The DRM type is applied by patching the source sce_sys/param.json (1.2.0 has
-/// no DRM option), restored afterwards.
+/// The LibProsperoPkg backend, built from the upstream source in the <c>third_party/LibProsperoPkg</c>
+/// git submodule and driven through <see cref="LibProsperoPkgEngine"/>. Builds run from an unpacked
+/// folder; image sources are not supported. The upstream builder lays the inner image out in memory
+/// and does not expose the SDK, compression, Kraken, PlayGo, seed or workspace knobs, so those
+/// options are reported as unsupported and the UI disables them. The DRM type is applied by patching
+/// the source sce_sys/param.json, restored afterwards.
 /// </summary>
 public sealed class LppBackend : IPackageBackend
 {
@@ -19,18 +19,18 @@ public sealed class LppBackend : IPackageBackend
 
     public string Id => BackendId;
 
-    public string DisplayName => "LibProsperoPkg 1.2.0";
+    public string DisplayName => "LibProsperoPkg";
 
     public BackendCapabilities Capabilities { get; } = new(
         BuildFromDirectory: true,
         BuildFromImage: false,
         Validate: true,
         Extract: true,
-        SupportsLargeImages: true,
-        SupportsSeed: true,
-        SupportsCompressionKnobs: true,
+        SupportsLargeImages: false,
+        SupportsSeed: false,
+        SupportsCompressionKnobs: false,
         SupportsRightSprxToggle: false,
-        SupportsPlayGoChunks: true);
+        SupportsPlayGoChunks: false);
 
     public Task<SonyDebugPackageBuildResult> BuildFromDirectoryAsync(string sourceDirectory, string outputPath,
         SonyDebugPackageBuildOptions options, IProgress<SonyDebugPackageProgress>? progress = null,
@@ -48,7 +48,7 @@ public sealed class LppBackend : IPackageBackend
     public SonyDebugPackageValidationResult Validate(string packagePath,
         string passcode = SonyDebugPackageCredentials.DefaultPasscode)
     {
-        (bool valid, string message) = LibProsperoPkg12.Validate(packagePath);
+        (bool valid, string message) = LibProsperoPkgEngine.Validate(packagePath);
         return new SonyDebugPackageValidationResult
         {
             IsValid = valid,
@@ -64,7 +64,7 @@ public sealed class LppBackend : IPackageBackend
         Task.Run(() =>
         {
             cancellationToken.ThrowIfCancellationRequested();
-            int files = LibProsperoPkg12.Extract(packagePath, destination, passcode);
+            int files = LibProsperoPkgEngine.Extract(packagePath, destination, passcode);
             return new SonyPackageExtractResult
             {
                 Destination = Path.GetFullPath(destination),
@@ -89,7 +89,7 @@ public sealed class LppBackend : IPackageBackend
         progress?.Report(new SonyDebugPackageProgress(
             "Building (LibProsperoPkg)", 0, 0, Path.GetFileName(source)));
 
-        // LibProsperoPkg 1.2.0 uses an existing param.json verbatim, so a DRM override is applied by
+        // LibProsperoPkg uses an existing param.json verbatim, so a DRM override is applied by
         // patching sce_sys/param.json. To keep the original dump untouched the build runs from a
         // same-volume hardlink overlay whose param.json is a real patched copy; only if that overlay
         // cannot be created do we fall back to a crash-recoverable in-place patch.
@@ -106,20 +106,13 @@ public sealed class LppBackend : IPackageBackend
         try
         {
             var translator = new LppProgressTranslator(progress);
-            produced = LibProsperoPkg12.Build(new LibProsperoPkg12BuildRequest
+            produced = LibProsperoPkgEngine.Build(new LibProsperoPkgBuildRequest
             {
                 SourceFolder = buildSource,
                 OutputFolder = Path.GetDirectoryName(destination) ?? Directory.GetCurrentDirectory(),
                 ContentId = credentials.ContentId,
                 Passcode = credentials.Passcode,
-                SdkVersion = options.SdkVersionOverride,
-                PlayGoChunks = options.PlayGoChunkCount,
-                Deterministic = options.Seed is not null,
-                OuterSeed = options.Seed,
-                Compression = options.Compression == Ps5InnerCompression.Stored ? 0 : 2,
-                KrakenLevel = options.KrakenLevel,
-                KrakenThreads = options.KrakenThreads,
-                TempDirectory = options.TempDirectory,
+                DrmType = EngineDrmType(options.DrmTypeOverride),
                 Log = message =>
                 {
                     options.Log?.Invoke(message);
@@ -186,10 +179,24 @@ public sealed class LppBackend : IPackageBackend
     private const string ParamBackupSuffix = ".ps5pkgtool-backup";
 
     /// <summary>
-    /// LibProsperoPkg 1.2.0 has no DRM option and uses the source <c>sce_sys/param.json</c>
-    /// verbatim, so a DRM override is applied by patching that file. Before patching, the original
-    /// bytes are written to a sibling <c>param.json.ps5pkgtool-backup</c> so an interrupted or
-    /// crashed build can be recovered: any leftover backup is restored before the next patch.
+    /// Maps the app's DRM token onto the <c>applicationDrmType</c> bucket the engine writes into a
+    /// generated <c>sce_sys/param.json</c>. The engine only knows the paid/free buckets, so an
+    /// "upgradable" title is recorded as the paid "standard" bucket (the same mapping the engine
+    /// itself uses for upgradable apps).
+    /// </summary>
+    private static string? EngineDrmType(string? drmType) => drmType switch
+    {
+        null or "" => null,
+        "free" => "free",
+        "freemium" => "freemium",
+        _ => "standard",
+    };
+
+    /// <summary>
+    /// LibProsperoPkg uses the source <c>sce_sys/param.json</c> verbatim, so a DRM override is
+    /// applied by patching that file. Before patching, the original bytes are written to a sibling
+    /// <c>param.json.ps5pkgtool-backup</c> so an interrupted or crashed build can be recovered: any
+    /// leftover backup is restored before the next patch.
     /// Returns the original bytes when a patch was applied, otherwise null.
     /// </summary>
     private static byte[]? ApplyDrmPatch(string paramPath, SonyDebugPackageBuildOptions options)
@@ -301,10 +308,9 @@ public sealed class LppBackend : IPackageBackend
     {
         while (ex is System.Reflection.TargetInvocationException { InnerException: { } inner })
             ex = inner;
-        // Prefer the engine's own classification; keep the legacy message checks only as a fallback
-        // for older vendored builds that predate ProsperoErrorInfo.
-        if (ProsperoErrorInfo.IsUnsupported(ex))
-            return true;
+        // The engine reports a layout it cannot encode as a NotSupportedException; the NAPS layout
+        // builder phrases it as "... exceeds the single-byte field; this layout size is not
+        // supported." Both are matched so the app can fall back to the other builder.
         return ex is NotSupportedException or OverflowException ||
             ex.Message.Contains("single-byte field", StringComparison.OrdinalIgnoreCase) ||
             ex.Message.Contains("this layout size is not supported", StringComparison.OrdinalIgnoreCase);

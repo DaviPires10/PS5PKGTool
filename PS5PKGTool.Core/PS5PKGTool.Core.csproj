@@ -5,6 +5,16 @@
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
+  <PropertyGroup>
+    <!--
+      The PS5 package engines are compiled from source out of the upstream git submodules, so a
+      clone that did not initialise them cannot build. The paths are kept in properties so the
+      missing-submodule check below can name the exact folder to fetch.
+    -->
+    <ThirdPartyRoot>$(MSBuildThisFileDirectory)..\third_party\</ThirdPartyRoot>
+    <ProsperoPkgToolProject>$(ThirdPartyRoot)ProsperoPkgTool\ProsperoPkgTool\ProsperoPkgTool.csproj</ProsperoPkgToolProject>
+    <LibProsperoPkgProject>$(ThirdPartyRoot)LibProsperoPkg\src\LibProsperoPkg\LibProsperoPkg.csproj</LibProsperoPkgProject>
+  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="BCnEncoder.Net.ImageSharp" Version="1.1.3" />
     <PackageReference Include="Oodle.NET" Version="2.2.0" />
@@ -14,9 +24,13 @@
     <ProjectReference Include="..\PS5PKGTool.Ufs2\PS5PKGTool.Ufs2.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="ProsperoPkgTool">
-      <HintPath>..\PS5PKGTool\ThirdParty\ProsperoPkgTool\ProsperoPkgTool.dll</HintPath>
-      <Private>true</Private>
-    </Reference>
+    <ProjectReference Include="$(ProsperoPkgToolProject)" />
+    <ProjectReference Include="$(LibProsperoPkgProject)" />
   </ItemGroup>
+  <Target Name="CheckThirdPartySubmodules" BeforeTargets="ResolveProjectReferences">
+    <Error Condition="!Exists('$(ProsperoPkgToolProject)')"
+           Text="The ProsperoPkgTool submodule is missing. Run 'git submodule update --init --recursive' in $(MSBuildThisFileDirectory)../ to fetch it." />
+    <Error Condition="!Exists('$(LibProsperoPkgProject)')"
+           Text="The LibProsperoPkg submodule is missing. Run 'git submodule update --init --recursive' in $(MSBuildThisFileDirectory)../ to fetch it." />
+  </Target>
 </Project>

@@ -3,4 +3,6 @@
   <Project Path="PS5PKGTool.Ffpfsc/PS5PKGTool.Ffpfsc.csproj" />
   <Project Path="PS5PKGTool.Ufs2/PS5PKGTool.Ufs2.csproj" />
   <Project Path="PS5PKGTool/PS5PKGTool.csproj" />
+  <Project Path="third_party/ProsperoPkgTool/ProsperoPkgTool/ProsperoPkgTool.csproj" />
+  <Project Path="third_party/LibProsperoPkg/src/LibProsperoPkg/LibProsperoPkg.csproj" />
 </Solution>

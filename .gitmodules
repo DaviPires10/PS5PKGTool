@@ -1,0 +1,8 @@
+[submodule "third_party/ProsperoPkgTool"]
+	path = third_party/ProsperoPkgTool
+	url = https://github.com/pearlxcore/ProsperoPkgTool.git
+	branch = main
+[submodule "third_party/LibProsperoPkg"]
+	path = third_party/LibProsperoPkg
+	url = https://github.com/SvenGDK/LibProsperoPKG.git
+	branch = main

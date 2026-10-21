@@ -247,7 +247,7 @@ public sealed class QueuedPackageTask
 
     /// <summary>
     /// Optional qualifier appended to the target in <see cref="FormatRoute"/>, for example the builder
-    /// used for a debug package ("Dump Folder → FPKG (LibProsperoPkg 1.2.0)").
+    /// used for a debug package ("Dump Folder → FPKG (LibProsperoPkg)").
     /// </summary>
     public string TargetQualifier { get; init; } = string.Empty;
 
