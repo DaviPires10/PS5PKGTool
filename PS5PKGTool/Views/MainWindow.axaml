@@ -1,0 +1,823 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="using:PS5PKGTool.Controls"
+        xmlns:vlc="using:LibVLCSharp.Avalonia"
+        x:Class="PS5PKGTool.Views.MainWindow"
+        Title="PS5 PKG Tool"
+        Width="1400" Height="880"
+        MinWidth="1050" MinHeight="700"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource Theme.GreyBackground}">
+  <DockPanel LastChildFill="True">
+
+    <!-- ===================== Main menu ===================== -->
+    <Menu DockPanel.Dock="Top" x:Name="menuMain">
+      <MenuItem x:Name="menuFile" Header="File">
+        <MenuItem x:Name="menuAddFolder" Header="Add Library Folder..." />
+        <MenuItem x:Name="menuOpenDump" Header="Open Dump Folder..." />
+        <MenuItem x:Name="menuOpenPackage" Header="Open PS5 Container / Image..." />
+        <MenuItem x:Name="menuRecent" Header="Open Recent" />
+        <MenuItem x:Name="menuRefresh" Header="Refresh Library" />
+        <MenuItem x:Name="menuSaveManifest" Header="Save Manifest" />
+        <MenuItem x:Name="menuEmptyList" Header="Empty List" />
+        <MenuItem x:Name="menuRemoveMissing" Header="Remove Missing Items" />
+        <Separator />
+        <MenuItem x:Name="menuSettings" Header="Settings..." />
+        <MenuItem x:Name="menuExit" Header="Exit" />
+      </MenuItem>
+      <MenuItem x:Name="menuView" Header="View">
+        <MenuItem x:Name="menuViewColumns" Header="Columns" />
+        <MenuItem x:Name="menuViewInterface" Header="Interface">
+          <MenuItem x:Name="menuViewFilterBar" Header="Filter bar" ToggleType="CheckBox" IsChecked="True" />
+          <MenuItem x:Name="menuViewFilterChips" Header="Active filters" ToggleType="CheckBox" IsChecked="True" />
+          <MenuItem x:Name="menuViewWorkspace" Header="Details workspace" ToggleType="CheckBox" IsChecked="True" />
+          <MenuItem x:Name="menuViewStatusBar" Header="Status bar" ToggleType="CheckBox" IsChecked="True" />
+        </MenuItem>
+        <Separator />
+        <MenuItem x:Name="menuViewReset" Header="Reset library view" />
+      </MenuItem>
+      <MenuItem x:Name="menuHelp" Header="Help">
+        <MenuItem x:Name="menuAbout" Header="About" />
+        <Separator />
+        <MenuItem x:Name="menuHelpCheckUpdate" Header="Check for Updates..." />
+        <MenuItem x:Name="menuHelpCheckUpdatesOnStartup" Header="Check for updates on startup"
+                  ToggleType="CheckBox" />
+        <MenuItem x:Name="menuHelpKofi" Header="Buy me a Ko-fi" />
+        <MenuItem x:Name="menuHelpPayPal" Header="Support via PayPal" />
+      </MenuItem>
+    </Menu>
+
+    <!-- ===================== Status bar ===================== -->
+    <Border DockPanel.Dock="Bottom" x:Name="statusMain" Classes="statusbar" Padding="8,3">
+      <Grid ColumnDefinitions="Auto,Auto,*,Auto">
+        <ProgressBar x:Name="statusBusy" Grid.Column="0" Width="120" Height="12"
+                     IsIndeterminate="True" IsVisible="False" Margin="0,0,10,0"
+                     VerticalAlignment="Center" />
+        <TextBlock x:Name="statusLabel" Grid.Column="1" Text="Ready" VerticalAlignment="Center" />
+        <TextBlock x:Name="statusSpring" Grid.Column="2" Text="" />
+        <TextBlock x:Name="statusCount" Grid.Column="3" Text="0 games" VerticalAlignment="Center" />
+      </Grid>
+    </Border>
+
+    <!-- ===================== Library + workspace split ===================== -->
+    <Grid x:Name="splitMainRows" RowDefinitions="*,5,*">
+
+      <!-- Library pane -->
+      <Grid x:Name="splitMainPane1" Grid.Row="0" RowDefinitions="Auto,Auto,*">
+
+        <Grid x:Name="panelFilterBar" Grid.Row="0" RowDefinitions="Auto,Auto" Margin="10,8,10,0">
+          <!-- search / preset / clear -->
+          <Grid Grid.Row="0" ColumnDefinitions="520,Auto,Auto,Auto,Auto">
+            <controls:SearchBox x:Name="searchLibrary" Grid.Column="0"
+                                Watermark="Search: title:, id:, size:&gt;50GB, -exclude"
+                                ToolTip.Tip="Search the PS5 library by title, ID, size and more." />
+            <TextBlock x:Name="lblFilterPreset" Grid.Column="1" Classes="caption"
+                       Text="Preset" Margin="12,0,6,0" VerticalAlignment="Center" />
+            <ComboBox x:Name="cboFilterPreset" Grid.Column="2" Width="150" MinHeight="28" />
+            <Button x:Name="btnFilterClear" Grid.Column="3" Content="Clear all" Width="110"
+                    MinHeight="28" Margin="12,0,0,0"
+                    ToolTip.Tip="Clear the search query and all checkbox filters." />
+            <TextBlock Grid.Column="4" Margin="10,0,0,0" VerticalAlignment="Center"
+                       Classes="muted" Text="Ctrl+F search" />
+          </Grid>
+          <!-- category / region / format / group -->
+          <Grid Grid.Row="1" ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto"
+                Margin="0,6,0,0">
+            <TextBlock x:Name="lblFilterCategory" Grid.Column="0" Classes="caption"
+                       Text="Category" VerticalAlignment="Center" />
+            <ComboBox x:Name="cboFilterCategory" Grid.Column="1" Width="140" MinHeight="28" />
+            <TextBlock x:Name="lblFilterRegion" Grid.Column="2" Classes="caption" Text="Region"
+                       Margin="12,0,6,0" VerticalAlignment="Center" />
+            <ComboBox x:Name="cboFilterRegion" Grid.Column="3" Width="150" MinHeight="28" />
+            <TextBlock x:Name="lblFilterFormat" Grid.Column="4" Classes="caption" Text="Format"
+                       Margin="12,0,6,0" VerticalAlignment="Center" />
+            <ComboBox x:Name="cboFilterFormat" Grid.Column="5" Width="160" MinHeight="28" />
+            <TextBlock x:Name="lblFilterGroup" Grid.Column="6" Classes="caption" Text="Group"
+                       Margin="12,0,6,0" VerticalAlignment="Center" />
+            <ComboBox x:Name="cboFilterGroup" Grid.Column="7" Width="140" />
+          </Grid>
+        </Grid>
+
+        <!-- filter chips -->
+        <controls:ChipsPanel x:Name="chipsFilter" Grid.Row="1" Height="32" Margin="10,4,10,0" />
+
+        <!-- library table with empty-state overlay -->
+        <Grid Grid.Row="2">
+          <controls:TableView x:Name="gridLibrary" RowHeight="24" ShowGridLines="True"
+                              GroupLabel="Group" EmptyText="No games match the current filters.">
+            <controls:TableView.ContextMenu>
+              <ContextMenu x:Name="contextLibrary">
+                <MenuItem x:Name="menuLibraryReveal" Header="Reveal in Explorer" />
+                <Separator />
+                <MenuItem x:Name="menuLibraryCopy" Header="Copy">
+                  <MenuItem x:Name="menuLibraryCopyTitle" Header="Copy Title" />
+                  <MenuItem x:Name="menuLibraryCopyTitleId" Header="Copy Title ID" />
+                  <MenuItem x:Name="menuLibraryCopyContentId" Header="Copy Content ID" />
+                  <MenuItem x:Name="menuLibraryCopyFileName" Header="Copy File Name" />
+                  <MenuItem x:Name="menuLibraryCopyPath" Header="Copy Path" />
+                </MenuItem>
+                <MenuItem x:Name="menuLibraryRename" Header="Rename" />
+                <MenuItem x:Name="menuLibraryRenameAll" Header="Rename All" />
+                <MenuItem x:Name="menuLibraryRenameByPriority" Header="Rename by Install Order (packages)" />
+                <MenuItem x:Name="menuLibraryMove" Header="Move to Folder">
+                  <MenuItem x:Name="menuLibraryMoveTitle" Header="By Title" />
+                  <MenuItem x:Name="menuLibraryMoveTitleId" Header="By Title ID" />
+                  <MenuItem x:Name="menuLibraryMoveCategory" Header="By Category" />
+                  <MenuItem x:Name="menuLibraryMoveRegion" Header="By Region" />
+                  <MenuItem x:Name="menuLibraryMoveSource" Header="By Source" />
+                  <Separator />
+                  <MenuItem x:Name="menuLibraryMoveSingle" Header="All into the Destination" />
+                </MenuItem>
+                <MenuItem x:Name="menuLibraryDelete" Header="Delete Package... (Trash)" />
+                <Separator />
+                <MenuItem x:Name="menuLibrarySaveArtwork" Header="Save Artwork..." />
+                <MenuItem x:Name="menuLibraryExport" Header="Export library (CSV)..." />
+                <Separator x:Name="menuLibrarySeparator3" />
+                <MenuItem x:Name="menuLibraryGroupBy" Header="Group by">
+                  <MenuItem x:Name="menuLibraryGroupNone" Header="None" />
+                  <MenuItem x:Name="menuLibraryGroupFamily" Header="Family (base + updates + DLC)" />
+                  <MenuItem x:Name="menuLibraryGroupTitleId" Header="Title ID" />
+                  <MenuItem x:Name="menuLibraryGroupCategory" Header="Category" />
+                  <MenuItem x:Name="menuLibraryGroupRegion" Header="Region" />
+                  <MenuItem x:Name="menuLibraryGroupSource" Header="Source format" />
+                  <MenuItem x:Name="menuLibraryGroupFirmware" Header="Required firmware" />
+                </MenuItem>
+                <MenuItem x:Name="menuLibraryDuplicates" Header="Find Duplicates" />
+                <Separator x:Name="menuLibrarySeparator5" />
+                <MenuItem x:Name="menuLibraryGroupExport" Header="Export Group (CSV)..." />
+                <MenuItem x:Name="menuLibraryGroupArtwork" Header="Save Group Artwork..." />
+              </ContextMenu>
+            </controls:TableView.ContextMenu>
+          </controls:TableView>
+          <TextBlock x:Name="lblFilterEmpty" Text="No games match the current filters."
+                     HorizontalAlignment="Center" VerticalAlignment="Center"
+                     FontSize="14" Classes="muted" IsVisible="False" IsHitTestVisible="False" />
+        </Grid>
+      </Grid>
+
+      <GridSplitter x:Name="splitMainSplitter" Grid.Row="1" ResizeDirection="Rows" HorizontalAlignment="Stretch" />
+
+      <!-- Workspace pane -->
+      <Grid x:Name="splitMainPane2" Grid.Row="2">
+        <TabControl x:Name="tabsWorkspace" SelectedIndex="0">
+
+          <!-- ========== General ========== -->
+          <TabItem x:Name="tabWorkspaceGeneral" Header="General">
+            <TabControl x:Name="tabsDetails" SelectedIndex="0">
+
+              <!-- Overview -->
+              <TabItem x:Name="tabOverview" Header="Overview">
+                <Grid RowDefinitions="Auto,*">
+                  <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="6" Margin="8,6">
+                    <Button x:Name="btnOverviewCopyAll" Content="Copy All" Width="96" />
+                    <Button x:Name="btnOverviewCopySelected" Content="Copy Selected" Width="120" />
+                  </StackPanel>
+                  <controls:TableView x:Name="gridOverview" Grid.Row="1" ShowGridLines="True" />
+                </Grid>
+              </TabItem>
+
+              <!-- Artwork -->
+              <TabItem x:Name="tabArtwork" Header="Artwork">
+                <Grid RowDefinitions="Auto,*">
+                  <Button x:Name="btnArtworkSaveAll" Grid.Row="0" Content="Save All..."
+                          Width="110" HorizontalAlignment="Left" Margin="8,6" />
+                  <Grid Grid.Row="1" ColumnDefinitions="*,5,*" Margin="4">
+                    <controls:SectionPanel x:Name="sectionIcon" Grid.Column="0"
+                                           Header="Icon (512 x 512)" Margin="4">
+                      <Border Background="{DynamicResource Theme.DarkBackground}">
+                        <Image x:Name="pictureIcon" Stretch="Uniform">
+                          <Image.ContextMenu>
+                            <ContextMenu x:Name="contextArtwork">
+                              <MenuItem x:Name="menuArtworkSaveThis" Header="Save This Image..." />
+                              <MenuItem x:Name="menuArtworkSaveAll" Header="Save All Artwork..." />
+                            </ContextMenu>
+                          </Image.ContextMenu>
+                        </Image>
+                      </Border>
+                    </controls:SectionPanel>
+                    <GridSplitter Grid.Column="1" ResizeDirection="Columns" />
+                    <controls:SectionPanel x:Name="sectionBackground" Grid.Column="2"
+                                           Header="Background Art (PIC0 / PIC1 / PIC2)" Margin="4">
+                      <TabControl x:Name="tabsBackgrounds" SelectedIndex="0">
+                        <TabItem x:Name="tabPic0" Header="PIC0">
+                          <Image x:Name="pictureBackground0" Stretch="Uniform">
+                            <Image.ContextMenu>
+                              <ContextMenu>
+                                <MenuItem x:Name="menuArtworkSaveThis2" Header="Save This Image..." />
+                                <MenuItem x:Name="menuArtworkSaveAll2" Header="Save All Artwork..." />
+                              </ContextMenu>
+                            </Image.ContextMenu>
+                          </Image>
+                        </TabItem>
+                        <TabItem x:Name="tabPic1" Header="PIC1">
+                          <Image x:Name="pictureBackground1" Stretch="Uniform">
+                            <Image.ContextMenu>
+                              <ContextMenu>
+                                <MenuItem x:Name="menuArtworkSaveThis3" Header="Save This Image..." />
+                                <MenuItem x:Name="menuArtworkSaveAll3" Header="Save All Artwork..." />
+                              </ContextMenu>
+                            </Image.ContextMenu>
+                          </Image>
+                        </TabItem>
+                        <TabItem x:Name="tabPic2" Header="PIC2">
+                          <Image x:Name="pictureBackground2" Stretch="Uniform">
+                            <Image.ContextMenu>
+                              <ContextMenu>
+                                <MenuItem x:Name="menuArtworkSaveThis4" Header="Save This Image..." />
+                                <MenuItem x:Name="menuArtworkSaveAll4" Header="Save All Artwork..." />
+                              </ContextMenu>
+                            </Image.ContextMenu>
+                          </Image>
+                        </TabItem>
+                      </TabControl>
+                    </controls:SectionPanel>
+                  </Grid>
+                </Grid>
+              </TabItem>
+
+              <!-- Trophies -->
+              <TabItem x:Name="tabTrophies" Header="Trophies">
+                <Grid RowDefinitions="36,Auto,*">
+                  <TextBlock x:Name="lblTrophySummary" Grid.Row="0" Margin="10,0"
+                             VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                             Text="Select a game to load trophies." />
+                  <Grid Grid.Row="1" ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,*,Auto"
+                        Margin="8,0,8,6">
+                    <Button x:Name="btnTrophySaveIcons" Grid.Column="0" Content="Save Icons..."
+                            Width="104" />
+                    <Button x:Name="btnTrophyExportCsv" Grid.Column="1" Content="Export CSV..."
+                            Width="110" Margin="6,0,0,0" />
+                    <CheckBox x:Name="chkTrophyPlatinum" Grid.Column="2" Content="Platinum"
+                              Margin="14,0,0,0" VerticalAlignment="Center" />
+                    <CheckBox x:Name="chkTrophyGold" Grid.Column="3" Content="Gold"
+                              Margin="10,0,0,0" VerticalAlignment="Center" />
+                    <CheckBox x:Name="chkTrophySilver" Grid.Column="4" Content="Silver"
+                              Margin="10,0,0,0" VerticalAlignment="Center" />
+                    <CheckBox x:Name="chkTrophyBronze" Grid.Column="5" Content="Bronze"
+                              Margin="10,0,0,0" VerticalAlignment="Center" />
+                    <CheckBox x:Name="chkTrophyShowHidden" Grid.Column="6" Content="Show hidden"
+                              IsChecked="True" Margin="14,0,0,0" VerticalAlignment="Center" />
+                    <controls:SearchBox x:Name="searchTrophy" Grid.Column="8" Watermark="Search trophies"
+                                        HorizontalAlignment="Stretch" MaxWidth="420" />
+                  </Grid>
+                  <controls:TableView x:Name="gridTrophies" Grid.Row="2" RowHeight="48">
+                    <controls:TableView.ContextMenu>
+                      <ContextMenu x:Name="contextTrophies">
+                        <MenuItem x:Name="menuTrophySaveIcon" Header="Save Icon..." />
+                        <MenuItem x:Name="menuTrophySaveAllIcons" Header="Save All Icons..." />
+                        <MenuItem x:Name="menuTrophyExportCsv" Header="Export CSV..." />
+                      </ContextMenu>
+                    </controls:TableView.ContextMenu>
+                  </controls:TableView>
+                </Grid>
+              </TabItem>
+
+              <!-- Activities & UDS -->
+              <TabItem x:Name="tabActivities" Header="Activities &amp; UDS">
+                <Grid RowDefinitions="36,Auto,*">
+                  <TextBlock x:Name="lblActivitiesSummary" Grid.Row="0" Margin="10,0"
+                             VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                             Text="Select a game to load activity definitions." />
+                  <Grid Grid.Row="1" ColumnDefinitions="Auto,Auto,*,Auto" Margin="8,0,8,6">
+                    <Button x:Name="btnUdsCopyAll" Grid.Column="0" Content="Copy All" Width="96" />
+                    <Button x:Name="btnUdsCopySelected" Grid.Column="1" Content="Copy Selected"
+                            Width="120" Margin="6,0,0,0" />
+                    <controls:SearchBox x:Name="searchUds" Grid.Column="3"
+                                        Watermark="Search events, stats, enums, rules"
+                                        Width="292" HorizontalAlignment="Right" />
+                  </Grid>
+                  <TabControl x:Name="tabsUds" Grid.Row="2" SelectedIndex="0">
+                    <TabItem x:Name="tabUdsEvents" Header="Events">
+                      <Grid RowDefinitions="*,5,*">
+                        <controls:TableView x:Name="gridUdsEvents" Grid.Row="0" />
+                        <GridSplitter Grid.Row="1" ResizeDirection="Rows" />
+                        <controls:TableView x:Name="gridUdsEventProperties" Grid.Row="2" />
+                      </Grid>
+                    </TabItem>
+                    <TabItem x:Name="tabUdsStats" Header="Stats">
+                      <controls:TableView x:Name="gridUdsStats" />
+                    </TabItem>
+                    <TabItem x:Name="tabUdsEnums" Header="Enum groups">
+                      <controls:TableView x:Name="gridUdsEnums" />
+                    </TabItem>
+                    <TabItem x:Name="tabUdsRules" Header="Extraction rules">
+                      <controls:TableView x:Name="gridUdsRules" />
+                    </TabItem>
+                  </TabControl>
+                </Grid>
+              </TabItem>
+
+              <!-- Files -->
+              <TabItem x:Name="tabFiles" Header="Files">
+                <Grid RowDefinitions="36,*">
+                  <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" Margin="8,4">
+                    <TextBlock x:Name="lblFilesSummary" Grid.Column="0" VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis"
+                               Text="Select a game to inventory its files." />
+                    <Button x:Name="btnFileExtractAll" Grid.Column="1" Content="Extract All..."
+                            Width="120" />
+                    <Button x:Name="btnFileCancel" Grid.Column="2" Content="Cancel" Width="84"
+                            Margin="6,0,0,0" />
+                  </Grid>
+                  <controls:SectionPanel x:Name="sectionFileBrowser" Grid.Row="1" Header="Dump Files"
+                                         Margin="4">
+                    <Grid ColumnDefinitions="*,5,*">
+                      <Grid Grid.Column="0" RowDefinitions="*">
+                        <TreeView x:Name="treeFiles">
+                          <TreeView.ContextMenu>
+                            <ContextMenu x:Name="contextTreeFiles">
+                              <MenuItem x:Name="menuTreeExpand" Header="Expand" />
+                              <MenuItem x:Name="menuTreeCollapse" Header="Collapse" />
+                              <MenuItem x:Name="menuTreeExpandAll" Header="Expand All" />
+                              <MenuItem x:Name="menuTreeCollapseAll" Header="Collapse All" />
+                              <Separator />
+                              <MenuItem x:Name="menuTreeCopyPath" Header="Copy Path" />
+                              <MenuItem x:Name="menuTreeExtract" Header="Extract Folder..." />
+                            </ContextMenu>
+                          </TreeView.ContextMenu>
+                        </TreeView>
+                      </Grid>
+                      <GridSplitter Grid.Column="1" ResizeDirection="Columns" />
+                      <Grid x:Name="splitFileContentPreview" Grid.Column="2"
+                            ColumnDefinitions="*,5,1.1*">
+                        <Grid x:Name="fileListPanel" Grid.Column="0" RowDefinitions="Auto,*">
+                          <controls:SearchBox x:Name="searchFileFilter" Grid.Row="0"
+                                              Watermark="Search files (all folders)" Margin="4,4,4,0" />
+                          <controls:TableView x:Name="listFiles" Grid.Row="1" ShowGridLines="False"
+                                              Margin="0,4,0,0">
+                            <controls:TableView.ContextMenu>
+                              <ContextMenu x:Name="contextFiles">
+                                <MenuItem x:Name="menuFileOpenContained" Header="Open / Preview" />
+                                <MenuItem x:Name="menuFileExtractContained" Header="Extract Selected File..." />
+                                <MenuItem x:Name="menuFileExtractSelected" Header="Extract Selected (with folders)..." />
+                                <Separator />
+                                <MenuItem x:Name="menuFileCopyPath" Header="Copy Path" />
+                                <MenuItem x:Name="menuFileCopyName" Header="Copy Filename" />
+                                <Separator />
+                                <MenuItem x:Name="menuFileRevealContainer" Header="Reveal Container in Explorer" />
+                              </ContextMenu>
+                            </controls:TableView.ContextMenu>
+                          </controls:TableView>
+                        </Grid>
+                        <GridSplitter Grid.Column="1" ResizeDirection="Columns" />
+                        <controls:SectionPanel x:Name="sectionFileViewer" Grid.Column="2"
+                                               Header="File Viewer">
+                          <Grid RowDefinitions="Auto,*,Auto">
+                            <TextBlock x:Name="lblFileViewerInfo" Grid.Row="0" TextWrapping="Wrap"
+                                       Margin="4,2" Classes="muted"
+                                       Text="Select a file to preview it." />
+                            <Grid Grid.Row="1">
+                              <Border x:Name="mediaFileHost" IsVisible="False"
+                                      Background="{DynamicResource Theme.DarkBackground}">
+                                <vlc:VideoView x:Name="mediaFileViewer" />
+                              </Border>
+                              <TextBox x:Name="txtHexViewer" IsVisible="False" IsReadOnly="True"
+                                       AcceptsReturn="True" TextWrapping="NoWrap" Classes="mono"
+                                       FontSize="11" />
+                              <TextBox x:Name="txtFileViewer" IsVisible="False" IsReadOnly="True"
+                                       AcceptsReturn="True" TextWrapping="Wrap" Classes="mono"
+                                       FontSize="11" />
+                              <Image x:Name="pictureFileViewer" IsVisible="False" Stretch="Uniform" />
+                            </Grid>
+                            <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="6" Margin="4">
+                              <Button x:Name="btnMediaLoad" Content="Load &amp; Play" Width="100" IsVisible="False" />
+                              <Button x:Name="btnMediaPlay" Content="Play" Width="62" IsVisible="False" />
+                              <Button x:Name="btnMediaPause" Content="Pause" Width="62" IsVisible="False" />
+                              <Button x:Name="btnMediaStop" Content="Stop" Width="62" IsVisible="False" />
+                              <Button x:Name="btnHexPrevious" Content="Previous" Width="76" IsVisible="False" />
+                              <Button x:Name="btnHexNext" Content="Next" Width="62" IsVisible="False" />
+                              <TextBlock x:Name="lblHexPage" VerticalAlignment="Center"
+                                         Classes="muted" IsVisible="False" />
+                            </StackPanel>
+                          </Grid>
+                        </controls:SectionPanel>
+                      </Grid>
+                    </Grid>
+                  </controls:SectionPanel>
+                </Grid>
+              </TabItem>
+
+              <!-- Executable -->
+              <TabItem x:Name="tabExecutable" Header="Executable">
+                <Grid RowDefinitions="52,Auto,*">
+                  <TextBlock x:Name="lblExecutableSummary" Grid.Row="0" Margin="10,0"
+                             VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                             Text="Select a game to inspect eboot.bin and modules." />
+                  <Grid Grid.Row="1" ColumnDefinitions="Auto,Auto,Auto,Auto,*,Auto"
+                        Margin="8,0,8,6">
+                    <Button x:Name="btnExecExtract" Grid.Column="0" Content="Extract..." Width="110" />
+                    <Button x:Name="btnExecCopyAll" Grid.Column="1" Content="Copy All" Width="96"
+                            Margin="6,0,0,0" />
+                    <Button x:Name="btnExecCopySelected" Grid.Column="2" Content="Copy Selected"
+                            Width="120" Margin="6,0,0,0" />
+                    <Button x:Name="btnExecHash" Grid.Column="3" Content="SHA-256..." Width="130"
+                            Margin="6,0,0,0" />
+                    <controls:SearchBox x:Name="searchExecutable" Grid.Column="5"
+                                        Watermark="Search modules" Width="292"
+                                        HorizontalAlignment="Right" />
+                  </Grid>
+                  <TabControl x:Name="tabsExecutable" Grid.Row="2" SelectedIndex="0">
+                    <TabItem x:Name="tabExecModules" Header="Modules">
+                      <controls:TableView x:Name="gridModules" />
+                    </TabItem>
+                    <TabItem x:Name="tabExecElf" Header="ELF">
+                      <Grid RowDefinitions="*,5,*">
+                        <controls:TableView x:Name="gridElfPrograms" Grid.Row="0" />
+                        <GridSplitter Grid.Row="1" ResizeDirection="Rows" />
+                        <controls:TableView x:Name="gridElfSections" Grid.Row="2" />
+                      </Grid>
+                    </TabItem>
+                    <TabItem x:Name="tabExecSelf" Header="SELF">
+                      <Grid RowDefinitions="*,5,*">
+                        <controls:TableView x:Name="gridSelfHeader" Grid.Row="0" />
+                        <GridSplitter Grid.Row="1" ResizeDirection="Rows" />
+                        <controls:TableView x:Name="gridSelfSegments" Grid.Row="2" />
+                      </Grid>
+                    </TabItem>
+                  </TabControl>
+                </Grid>
+              </TabItem>
+
+              <!-- Raw param.json -->
+              <TabItem x:Name="tabRaw" Header="Raw param.json">
+                <Grid RowDefinitions="Auto,*">
+                  <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="6" Margin="8,6">
+                    <Button x:Name="btnCopyRawJson" Content="Copy JSON" Width="110" />
+                    <Button x:Name="btnRawFormatted" Content="Formatted" Width="110" />
+                    <Button x:Name="btnRawOriginal" Content="Original bytes" Width="130" />
+                  </StackPanel>
+                  <TextBox x:Name="txtRawMetadata" Grid.Row="1" IsReadOnly="True" AcceptsReturn="True"
+                           TextWrapping="NoWrap" Classes="mono" FontSize="11"
+                           ScrollViewer.VerticalScrollBarVisibility="Auto"
+                           ScrollViewer.HorizontalScrollBarVisibility="Auto" />
+                </Grid>
+              </TabItem>
+
+              <!-- Container -->
+              <TabItem x:Name="tabPackage" Header="Container">
+                <TabControl x:Name="tabsPackage" SelectedIndex="0">
+                  <TabItem x:Name="tabPkgContainer" Header="Source structure">
+                    <controls:TableView x:Name="gridPkgHeader" />
+                  </TabItem>
+                  <TabItem x:Name="tabPkgSegments" Header="Segments">
+                    <controls:TableView x:Name="gridPkgSegments" />
+                  </TabItem>
+                  <TabItem x:Name="tabPkgEntries" Header="CNT entries">
+                    <controls:TableView x:Name="gridPkgEntries" />
+                  </TabItem>
+                  <TabItem x:Name="tabMetadata" Header="Metadata">
+                    <TabControl x:Name="tabsMetadata" SelectedIndex="0">
+                      <TabItem x:Name="tabPkgSfo" Header="param.sfo">
+                        <controls:TableView x:Name="gridParamSfo" />
+                      </TabItem>
+                      <TabItem x:Name="tabPkgKeystone" Header="Keystone / NP">
+                        <controls:TableView x:Name="gridKeystone" />
+                      </TabItem>
+                      <TabItem x:Name="tabPkgPlayGo" Header="PlayGo">
+                        <Grid RowDefinitions="Auto,*">
+                          <TextBlock x:Name="lblPlayGoSummary" Grid.Row="0" Margin="10,4"
+                                     Text="Select a game to inspect the PlayGo chunk map." />
+                          <TabControl x:Name="tabsPlayGo" Grid.Row="1" SelectedIndex="0">
+                            <TabItem x:Name="tabPlayGoChunks" Header="Chunks">
+                              <controls:TableView x:Name="gridPlayGoChunks" />
+                            </TabItem>
+                            <TabItem x:Name="tabPlayGoScenarios" Header="Scenarios">
+                              <controls:TableView x:Name="gridPlayGoScenarios" />
+                            </TabItem>
+                            <TabItem x:Name="tabPlayGoFiles" Header="File chunks">
+                              <controls:TableView x:Name="gridPlayGoFiles" />
+                            </TabItem>
+                          </TabControl>
+                        </Grid>
+                      </TabItem>
+                    </TabControl>
+                  </TabItem>
+                  <TabItem x:Name="tabPkgSi" Header="SI contents">
+                    <controls:TableView x:Name="gridSi" />
+                  </TabItem>
+                </TabControl>
+              </TabItem>
+            </TabControl>
+          </TabItem>
+
+          <!-- ========== Tools ========== -->
+          <TabItem x:Name="tabWorkspaceTools" Header="Tools">
+            <Grid x:Name="toolsLayout" RowDefinitions="115,*,50" Margin="10,8">
+              <controls:SectionPanel x:Name="sectionJob" Grid.Row="0" Header="Job">
+                <Grid RowDefinitions="28,26,30" ColumnDefinitions="110,*">
+                  <TextBlock x:Name="lblImageSource" Grid.Row="0" Grid.Column="0" Text="Source:"
+                             VerticalAlignment="Center" />
+                  <TextBlock x:Name="lblImageSourcePath" Grid.Row="0" Grid.Column="1"
+                             Text="Select a game in the library above." VerticalAlignment="Center"
+                             TextTrimming="CharacterEllipsis" />
+                  <TextBlock x:Name="lblImageFormat" Grid.Row="1" Grid.Column="1"
+                             Text="Detected: -" VerticalAlignment="Center" Classes="muted" />
+                  <TextBlock x:Name="lblImageAction" Grid.Row="2" Grid.Column="0" Text="Action:"
+                             VerticalAlignment="Center" />
+                  <ComboBox x:Name="cboImageAction" Grid.Row="2" Grid.Column="1"
+                            Width="360" HorizontalAlignment="Left" />
+                </Grid>
+              </controls:SectionPanel>
+
+              <TabControl x:Name="tabsImageTargets" Grid.Row="1" SelectedIndex="0" Margin="3,4,3,4">
+                <!-- exFAT -->
+                <TabItem x:Name="tabTargetExfat" Header="exFAT">
+                  <Grid RowDefinitions="Auto,Auto,Auto,*" ColumnDefinitions="110,*" Margin="10,8">
+                    <TextBlock x:Name="lblOutExfat" Grid.Row="0" Grid.Column="0" Text="Output:"
+                               VerticalAlignment="Center" />
+                    <Grid Grid.Row="0" Grid.Column="1" ColumnDefinitions="*,Auto,Auto">
+                      <TextBox x:Name="txtOutExfat" Grid.Column="0" />
+                      <Button x:Name="btnOutExfat" Grid.Column="1" Content="Browse..." Width="80"
+                              Margin="6,0,0,0" />
+                      <CheckBox x:Name="chkOutExfat" Grid.Column="2" Content="Overwrite existing"
+                                Margin="10,0,0,0" VerticalAlignment="Center" />
+                    </Grid>
+                    <TextBlock x:Name="lblImageCluster" Grid.Row="1" Grid.Column="0" Text="Cluster size:"
+                               VerticalAlignment="Center" Margin="0,6,0,0" />
+                    <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="8"
+                                Margin="0,6,0,0">
+                      <ComboBox x:Name="cboImageCluster" Width="140" />
+                      <CheckBox x:Name="chkImageAmpr" Content="Generate AMPR index"
+                                VerticalAlignment="Center" />
+                    </StackPanel>
+                    <TextBlock x:Name="lblWsExfat" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
+                               Text="Workspace: (set in Settings)" Classes="muted" Margin="0,8,0,0" />
+                  </Grid>
+                </TabItem>
+
+                <!-- FFPKG -->
+                <TabItem x:Name="tabTargetFfpkg" Header="FFPKG">
+                  <Grid RowDefinitions="Auto,Auto,Auto,*" ColumnDefinitions="110,*" Margin="10,8">
+                    <TextBlock x:Name="lblOutFfpkg" Grid.Row="0" Grid.Column="0" Text="Output:"
+                               VerticalAlignment="Center" />
+                    <Grid Grid.Row="0" Grid.Column="1" ColumnDefinitions="*,Auto,Auto">
+                      <TextBox x:Name="txtOutFfpkg" Grid.Column="0" />
+                      <Button x:Name="btnOutFfpkg" Grid.Column="1" Content="Browse..." Width="80"
+                              Margin="6,0,0,0" />
+                      <CheckBox x:Name="chkOutFfpkg" Grid.Column="2" Content="Overwrite existing"
+                                Margin="10,0,0,0" VerticalAlignment="Center" />
+                    </Grid>
+                    <TextBlock x:Name="lblImageBlock" Grid.Row="1" Grid.Column="0" Text="Block size:"
+                               VerticalAlignment="Center" Margin="0,6,0,0" />
+                    <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="8"
+                                Margin="0,6,0,0">
+                      <ComboBox x:Name="cboImageBlock" Width="110" />
+                      <TextBlock x:Name="lblImageFragment" Text="Fragment:" VerticalAlignment="Center" />
+                      <ComboBox x:Name="cboImageFragment" Width="110" />
+                      <TextBlock x:Name="lblImageDensity" Text="Density:" VerticalAlignment="Center" />
+                      <ComboBox x:Name="cboImageDensity" Width="140" />
+                      <TextBlock x:Name="lblImageMinFree" Text="Min free %:" VerticalAlignment="Center" />
+                      <NumericUpDown x:Name="nudImageMinFree" Width="90" Minimum="0" Maximum="100" />
+                    </StackPanel>
+                    <TextBlock x:Name="lblWsFfpkg" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
+                               Text="Workspace: (set in Settings)" Classes="muted" Margin="0,8,0,0" />
+                  </Grid>
+                </TabItem>
+
+                <!-- FFPFSC -->
+                <TabItem x:Name="tabTargetFfpfsc" Header="FFPFSC">
+                  <Grid RowDefinitions="Auto,Auto,Auto,*" ColumnDefinitions="110,*" Margin="10,8">
+                    <TextBlock x:Name="lblOutFfpfsc" Grid.Row="0" Grid.Column="0" Text="Output:"
+                               VerticalAlignment="Center" />
+                    <Grid Grid.Row="0" Grid.Column="1" ColumnDefinitions="*,Auto,Auto">
+                      <TextBox x:Name="txtOutFfpfsc" Grid.Column="0" />
+                      <Button x:Name="btnOutFfpfsc" Grid.Column="1" Content="Browse..." Width="80"
+                              Margin="6,0,0,0" />
+                      <CheckBox x:Name="chkOutFfpfsc" Grid.Column="2" Content="Overwrite existing"
+                                Margin="10,0,0,0" VerticalAlignment="Center" />
+                    </Grid>
+                    <TextBlock x:Name="lblImageLevel" Grid.Row="1" Grid.Column="0" Text="Level:"
+                               VerticalAlignment="Center" Margin="0,6,0,0" />
+                    <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="8"
+                                Margin="0,6,0,0">
+                      <NumericUpDown x:Name="nudImageLevel" Width="90" Minimum="1" Maximum="22" />
+                      <TextBlock x:Name="lblImageGain" Text="Gain %:" VerticalAlignment="Center" />
+                      <NumericUpDown x:Name="nudImageGain" Width="90" Minimum="0" Maximum="100" />
+                    </StackPanel>
+                    <TextBlock x:Name="lblWsFfpfsc" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
+                               Text="Workspace: (set in Settings)" Classes="muted" Margin="0,8,0,0" />
+                  </Grid>
+                </TabItem>
+
+                <!-- PKG -->
+                <TabItem x:Name="tabTargetDebug" Header="PKG">
+                  <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,*" ColumnDefinitions="110,*,Auto,220"
+                        Margin="10,6">
+                    <TextBlock x:Name="lblOutDebug" Grid.Row="0" Grid.Column="0" Text="Output:"
+                               VerticalAlignment="Center" />
+                    <Grid Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="3"
+                          ColumnDefinitions="*,Auto,Auto,Auto">
+                      <TextBox x:Name="txtOutDebug" Grid.Column="0" />
+                      <Button x:Name="btnOutDebug" Grid.Column="1" Content="Browse..." Width="80"
+                              Margin="6,0,0,0" />
+                      <CheckBox x:Name="chkOutDebug" Grid.Column="2" Content="Overwrite existing"
+                                Margin="10,0,0,0" VerticalAlignment="Center" />
+                      <CheckBox x:Name="chkImageAdvancedOptions" Grid.Column="3"
+                                Content="Advanced options" Margin="10,0,0,0"
+                                VerticalAlignment="Center" />
+                    </Grid>
+
+                    <TextBlock x:Name="lblDbgPasscode" Grid.Row="1" Grid.Column="0" Text="Passcode:"
+                               VerticalAlignment="Center" Margin="0,6,0,0" />
+                    <TextBox x:Name="txtDbgPasscode" Grid.Row="1" Grid.Column="1" Margin="0,6,0,0"
+                             Classes="mono" />
+                    <TextBlock x:Name="lblImageSdk" Grid.Row="1" Grid.Column="2" Text="SDK:"
+                               VerticalAlignment="Center" Margin="12,6,6,0" />
+                    <ComboBox x:Name="cboImageSdk" Grid.Row="1" Grid.Column="3" Margin="0,6,0,0" />
+
+                    <TextBlock x:Name="lblImagePkgType" Grid.Row="2" Grid.Column="0"
+                               Text="Package type:" VerticalAlignment="Center" Margin="0,6,0,0" />
+                    <ComboBox x:Name="cboImagePkgType" Grid.Row="2" Grid.Column="1" Margin="0,6,0,0" />
+                    <TextBlock x:Name="lblImageCompression" Grid.Row="2" Grid.Column="2"
+                               Text="Compression:" VerticalAlignment="Center" Margin="12,6,6,0" />
+                    <ComboBox x:Name="cboImageCompression" Grid.Row="2" Grid.Column="3"
+                              Margin="0,6,0,0" />
+
+                    <TextBlock x:Name="lblImagePlayGo" Grid.Row="3" Grid.Column="0"
+                               Text="PlayGo chunks:" VerticalAlignment="Center" Margin="0,6,0,0" />
+                    <NumericUpDown x:Name="nudImagePlayGoChunks" Grid.Row="3" Grid.Column="1"
+                                   Width="110" HorizontalAlignment="Left" Margin="0,6,0,0" />
+                    <TextBlock x:Name="lblImageKrakenLevel" Grid.Row="3" Grid.Column="2"
+                               Text="Kraken level:" VerticalAlignment="Center" Margin="12,6,6,0" />
+                    <StackPanel Grid.Row="3" Grid.Column="3" Orientation="Horizontal" Spacing="8"
+                                Margin="0,6,0,0">
+                      <ComboBox x:Name="cboImageKrakenLevel" Width="110" />
+                      <TextBlock x:Name="lblImageKrakenThreads" Text="Threads:"
+                                 VerticalAlignment="Center" />
+                      <NumericUpDown x:Name="nudImageKrakenThreads" Width="90"
+                                     Minimum="1" Maximum="64" />
+                    </StackPanel>
+
+                    <TextBlock x:Name="lblImageDrm" Grid.Row="4" Grid.Column="0" Text="DRM:"
+                               VerticalAlignment="Center" Margin="0,6,0,0" />
+                    <ComboBox x:Name="cboImageDrm" Grid.Row="4" Grid.Column="1" Width="160"
+                              HorizontalAlignment="Left" Margin="0,6,0,0" />
+                    <TextBlock x:Name="lblImageBackend" Grid.Row="4" Grid.Column="2" Text="Builder:"
+                               VerticalAlignment="Center" Margin="12,6,6,0" />
+                    <StackPanel Grid.Row="4" Grid.Column="3" Orientation="Horizontal" Spacing="8"
+                                Margin="0,6,0,0">
+                      <ComboBox x:Name="cboImageBackend" Width="150" />
+                      <CheckBox x:Name="chkImageFakeSign" Content="Fake-sign" IsChecked="True"
+                                VerticalAlignment="Center" />
+                      <CheckBox x:Name="chkImageRightSprx" Content="right.sprx" IsChecked="True"
+                                VerticalAlignment="Center" />
+                      <CheckBox x:Name="chkImageDeterministic" Content="Deterministic"
+                                VerticalAlignment="Center" />
+                    </StackPanel>
+                    <TextBlock x:Name="lblImageTemp" Grid.Row="5" Grid.Column="0"
+                               Grid.ColumnSpan="4" Text="Workspace: (set in Settings)"
+                               Classes="muted" Margin="0,8,0,0" />
+                  </Grid>
+                </TabItem>
+
+                <!-- Options -->
+                <TabItem x:Name="tabTargetOptions" Header="Options">
+                  <Grid RowDefinitions="Auto,Auto,*" ColumnDefinitions="110,*" Margin="10,8">
+                    <StackPanel x:Name="panelImageOptionsOutput" Grid.Row="0" Grid.Column="0"
+                                Grid.ColumnSpan="2" Orientation="Horizontal" Spacing="6">
+                      <TextBlock x:Name="lblImageOutput" Text="Output:" VerticalAlignment="Center"
+                                 Width="104" />
+                      <TextBox x:Name="txtImageOutput" Width="560" />
+                      <Button x:Name="btnImageBrowseOutput" Content="Browse..." Width="80" />
+                      <CheckBox x:Name="chkImageOverwrite" Content="Overwrite existing"
+                                VerticalAlignment="Center" />
+                    </StackPanel>
+                    <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                                Orientation="Horizontal" Spacing="6" Margin="0,8,0,0">
+                      <TextBlock x:Name="lblImagePasscode" Text="Passcode:" VerticalAlignment="Center"
+                                 Width="104" />
+                      <TextBox x:Name="txtImagePasscode" Width="300" Classes="mono" />
+                    </StackPanel>
+                    <TextBlock x:Name="lblImageExtractEngine" Grid.Row="2" Grid.Column="0"
+                               Text="Extract engine:" VerticalAlignment="Top" Margin="0,12,0,0" />
+                    <ComboBox x:Name="cboImageExtractEngine" Grid.Row="2" Grid.Column="1"
+                              Width="240" HorizontalAlignment="Left" Margin="0,8,0,0" />
+                  </Grid>
+                </TabItem>
+              </TabControl>
+
+              <Border x:Name="toolsFooter" Grid.Row="2" Classes="toolbar">
+                <Grid ColumnDefinitions="*,Auto,Auto">
+                  <TextBlock x:Name="lblImageStatus" Grid.Column="0" VerticalAlignment="Center"
+                             TextTrimming="CharacterEllipsis"
+                             Text="Select a source, then choose an action." />
+                  <Button x:Name="btnImageCancel" Grid.Column="1" Content="Cancel" Width="96" />
+                  <Button x:Name="btnImageRun" Grid.Column="2" Content="Run" Width="130"
+                          Classes="accent" Margin="8,0,0,0" />
+                </Grid>
+              </Border>
+            </Grid>
+          </TabItem>
+
+          <!-- ========== Tasks ========== -->
+          <TabItem x:Name="tabTasks" Header="Tasks">
+            <Grid x:Name="tasksLayout" RowDefinitions="38,*">
+              <Grid Grid.Row="0" ColumnDefinitions="86,86,86,86,86,96,110,50,100,130,170,96,120,*"
+                    Margin="3,0">
+                <CheckBox x:Name="chkTaskAutoStart" Grid.Column="0" Content="Run queue"
+                          VerticalAlignment="Center" />
+                <Button x:Name="btnTaskStart" Grid.Column="1" Content="Start Next" Margin="2,6" />
+                <Button x:Name="btnTaskCancel" Grid.Column="2" Content="Cancel" Margin="2,6" />
+                <Button x:Name="btnTaskRetry" Grid.Column="3" Content="Retry" Margin="2,6" />
+                <Button x:Name="btnTaskRemove" Grid.Column="4" Content="Remove" Margin="2,6" />
+                <Button x:Name="btnTaskOpen" Grid.Column="5" Content="Open Output" Margin="2,6" />
+                <Button x:Name="btnTaskClear" Grid.Column="6" Content="Clear successful" Margin="2,6" />
+                <TextBlock x:Name="lblTaskGroup" Grid.Column="7" Text="Group:"
+                           VerticalAlignment="Center" />
+                <ComboBox x:Name="cboTaskGroup" Grid.Column="8" Margin="2,6" />
+                <ComboBox x:Name="cboTaskFilter" Grid.Column="9" Margin="2,6" />
+                <controls:SearchBox x:Name="searchTasks" Grid.Column="10" Margin="2,4"
+                                    Watermark="Search tasks"
+                                    ToolTip.Tip="Filter the task list by title or status." />
+                <Button x:Name="btnTaskToggleDetails" Grid.Column="11" Content="Details"
+                        Margin="2,6" />
+                <CheckBox x:Name="chkTaskFollow" Grid.Column="12" Content="Follow running"
+                          IsChecked="True" VerticalAlignment="Center" Margin="4,0,0,0" />
+                <TextBlock x:Name="lblTaskSummary" Grid.Column="13" Text="Queue is empty."
+                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                           Margin="6,0,0,0" />
+              </Grid>
+
+              <Grid x:Name="splitTasks" Grid.Row="1" RowDefinitions="*,5,*">
+                <controls:SectionPanel x:Name="sectionTasksList" Grid.Row="0" Header="Task Queue"
+                                       Margin="3,0,3,0">
+                  <controls:TableView x:Name="gridTasks" RowHeight="24">
+                    <controls:TableView.ContextMenu>
+                      <ContextMenu x:Name="contextTasks">
+                        <MenuItem x:Name="menuTaskStart" Header="Start Next" />
+                        <MenuItem x:Name="menuTaskCancel" Header="Cancel" />
+                        <MenuItem x:Name="menuTaskRetry" Header="Retry" />
+                        <MenuItem x:Name="menuTaskRemove" Header="Remove" />
+                        <Separator />
+                        <MenuItem x:Name="menuTaskOpen" Header="Open Output" />
+                        <MenuItem x:Name="menuTaskShowSource" Header="Show Source" />
+                        <MenuItem x:Name="menuTaskReport" Header="Export Report..." />
+                        <MenuItem x:Name="menuTaskClear" Header="Clear Completed" />
+                      </ContextMenu>
+                    </controls:TableView.ContextMenu>
+                  </controls:TableView>
+                </controls:SectionPanel>
+
+                <GridSplitter Grid.Row="1" ResizeDirection="Rows" />
+
+                <controls:SectionPanel x:Name="sectionTaskDetails" Grid.Row="2" Header="Task Details"
+                                       Margin="3,0,3,0">
+                  <Grid x:Name="taskDetailLayout" RowDefinitions="20,22,22,18,*,20,30"
+                        ColumnDefinitions="120,*">
+                    <TextBlock x:Name="lblTaskStage" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
+                               Text="No task selected." VerticalAlignment="Center" />
+                    <TextBlock x:Name="lblTaskCurrentCaption" Grid.Row="1" Grid.Column="0"
+                               Text="Step progress" VerticalAlignment="Center" />
+                    <ProgressBar x:Name="barTaskCurrent" Grid.Row="1" Grid.Column="1"
+                                 Margin="0,3" />
+                    <TextBlock x:Name="lblTaskOverallCaption" Grid.Row="2" Grid.Column="0"
+                               Text="Task steps" VerticalAlignment="Center" />
+                    <ProgressBar x:Name="barTaskOverall" Grid.Row="2" Grid.Column="1"
+                                 Margin="0,3" />
+                    <TextBlock x:Name="lblTaskMessage" Grid.Row="3" Grid.Column="0"
+                               Grid.ColumnSpan="2" VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis" />
+                    <TextBlock x:Name="lblTaskMeta" Grid.Row="4" Grid.Column="0"
+                               Grid.ColumnSpan="2" VerticalAlignment="Top" Classes="muted"
+                               TextWrapping="Wrap" />
+                    <TextBlock x:Name="lblTaskResult" Grid.Row="5" Grid.Column="0"
+                               Grid.ColumnSpan="2" VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis" />
+                    <Button x:Name="btnTaskDiagnostic" Grid.Row="6" Grid.Column="0"
+                            Content="Diagnostic..." Width="160" HorizontalAlignment="Left" />
+                  </Grid>
+                </controls:SectionPanel>
+              </Grid>
+            </Grid>
+          </TabItem>
+
+          <!-- ========== Log ========== -->
+          <TabItem x:Name="tabLog" Header="Log">
+            <Grid RowDefinitions="Auto,*">
+              <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="8,6">
+                <TextBlock x:Name="lblLogLevel" Text="Show:" VerticalAlignment="Center" />
+                <ComboBox x:Name="cboLogLevel" Width="110" />
+                <CheckBox x:Name="chkLogAutoScroll" Content="Auto-scroll" IsChecked="True"
+                          VerticalAlignment="Center" />
+                <Button x:Name="btnLogClear" Content="Clear" Width="70" />
+                <Button x:Name="btnLogOpenFolder" Content="Open log folder" Width="130" />
+              </StackPanel>
+              <ListBox x:Name="txtLogView" Grid.Row="1" Classes="mono" FontSize="11"
+                       Background="{DynamicResource Theme.DarkBackground}"
+                       BorderBrush="{DynamicResource Theme.DarkBorder}"
+                       BorderThickness="1">
+                <ListBox.ItemTemplate>
+                  <DataTemplate>
+                    <TextBlock Text="{Binding Text}" Foreground="{Binding Brush}"
+                               FontFamily="Cascadia Mono, Consolas, DejaVu Sans Mono, monospace"
+                               FontSize="11" TextWrapping="NoWrap" />
+                  </DataTemplate>
+                </ListBox.ItemTemplate>
+              </ListBox>
+            </Grid>
+          </TabItem>
+        </TabControl>
+      </Grid>
+    </Grid>
+  </DockPanel>
+</Window>

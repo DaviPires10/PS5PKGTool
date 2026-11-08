@@ -1,23 +1,28 @@
+using System.Runtime.InteropServices;
 using BCnEncoder.Decoder;
-using BCnEncoder.ImageSharp;
+using BCnEncoder.Shared;
+using CommunityToolkit.HighPerformance;
 using PS5PKGTool.Core.Models;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
+using SkiaSharp;
 
 namespace PS5PKGTool.Core.Services;
 
+/// <summary>
+/// DDS/BC and PNG codecs used by the details panes and thumbnails. BC textures are decoded with
+/// BCnEncoder (MIT/Unlicense) and PNGs are encoded/decoded with SkiaSharp (MIT), so the engine has no
+/// ImageSharp dependency and no license-gated or vulnerable image package.
+/// </summary>
 public static class Ps5ImageCodec
 {
     public static byte[] DecodeDdsToPng(Stream ddsStream)
     {
         ArgumentNullException.ThrowIfNull(ddsStream);
         if (!ddsStream.CanRead) throw new ArgumentException("The DDS stream must be readable.", nameof(ddsStream));
-        var decoder = new BcDecoder();
-        using Image<Rgba32> image = decoder.DecodeToImageRgba32(ddsStream);
-        using var output = new MemoryStream();
-        image.SaveAsPng(output);
-        return output.ToArray();
+        Memory2D<ColorRgba32> pixels = new BcDecoder().Decode2D(ddsStream);
+        using SKBitmap bitmap = CreateBitmap(pixels);
+        using SKImage image = SKImage.FromBitmap(bitmap);
+        using SKData data = image.Encode(SKEncodedImageFormat.Png, 100);
+        return data.ToArray();
     }
 
     /// <summary>
@@ -28,11 +33,14 @@ public static class Ps5ImageCodec
     {
         ArgumentNullException.ThrowIfNull(ddsStream);
         if (!ddsStream.CanRead) throw new ArgumentException("The DDS stream must be readable.", nameof(ddsStream));
-        var decoder = new BcDecoder();
-        using Image<Rgba32> image = decoder.DecodeToImageRgba32(ddsStream);
-        byte[] rgba = new byte[checked(image.Width * image.Height * 4)];
-        image.CopyPixelDataTo(rgba);
-        return (rgba, image.Width, image.Height);
+        Memory2D<ColorRgba32> pixels = new BcDecoder().Decode2D(ddsStream);
+        byte[] rgba = new byte[checked(pixels.Width * pixels.Height * 4)];
+        for (int y = 0; y < pixels.Height; y++)
+        {
+            ReadOnlySpan<ColorRgba32> row = pixels.Span.GetRowSpan(y);
+            MemoryMarshal.AsBytes(row).CopyTo(rgba.AsSpan(y * pixels.Width * 4, pixels.Width * 4));
+        }
+        return (rgba, pixels.Width, pixels.Height);
     }
 
     /// <summary>
@@ -45,17 +53,37 @@ public static class Ps5ImageCodec
         if (pngBytes is null || pngBytes.Length == 0 || width <= 0 || height <= 0) return null;
         try
         {
-            using Image<Rgba32> image = Image.Load<Rgba32>(pngBytes);
-            image.Mutate(context => context.Resize(width, height));
-            byte[] rgba = new byte[checked(width * height * 4)];
-            image.CopyPixelDataTo(rgba);
-            return Ps5ImageData.FromRgba(rgba, width, height);
+            using SKBitmap? source = SKBitmap.Decode(pngBytes);
+            if (source is null) return null;
+            using var target = new SKBitmap(new SKImageInfo(width, height, SKColorType.Rgba8888,
+                SKAlphaType.Unpremul));
+            using (var canvas = new SKCanvas(target))
+            {
+                canvas.Clear(SKColors.Transparent);
+                using SKImage image = SKImage.FromBitmap(source);
+                canvas.DrawImage(image, new SKRect(0, 0, width, height),
+                    new SKSamplingOptions(SKFilterMode.Linear, SKMipmapMode.Linear));
+            }
+            return Ps5ImageData.FromRgba(target.Bytes, width, height);
         }
-        catch (Exception ex) when (ex is SixLabors.ImageSharp.InvalidImageContentException
-            or SixLabors.ImageSharp.UnknownImageFormatException
-            or NotSupportedException or ArgumentException or InvalidOperationException)
+        catch (Exception ex) when (ex is ArgumentException or InvalidOperationException or
+                                   NotSupportedException or IOException)
         {
             return null;
         }
+    }
+
+    private static SKBitmap CreateBitmap(Memory2D<ColorRgba32> pixels)
+    {
+        var bitmap = new SKBitmap(new SKImageInfo(pixels.Width, pixels.Height, SKColorType.Rgba8888,
+            SKAlphaType.Unpremul));
+        using SKPixmap pixmap = bitmap.PeekPixels();
+        Span<byte> destination = pixmap.GetPixelSpan();
+        for (int y = 0; y < pixels.Height; y++)
+        {
+            ReadOnlySpan<ColorRgba32> row = pixels.Span.GetRowSpan(y);
+            MemoryMarshal.AsBytes(row).CopyTo(destination.Slice(y * pixmap.RowBytes, pixels.Width * 4));
+        }
+        return bitmap;
     }
 }

@@ -33,6 +33,7 @@ public static class AppSettingsNormalizer
         settings.LibraryColumnOrder = CleanList(settings.LibraryColumnOrder);
         settings.LibraryHiddenColumns = CleanList(settings.LibraryHiddenColumns);
         settings.LibraryColumnWeights = CleanWeights(settings.LibraryColumnWeights);
+        settings.LibraryColumnWidths = CleanWidths(settings.LibraryColumnWidths);
         settings.LibrarySortKeys = CleanSortKeys(settings.LibrarySortKeys);
         settings.SavedViews = CleanViews(settings.SavedViews);
         settings.LibrarySortColumn = string.IsNullOrWhiteSpace(settings.LibrarySortColumn)
@@ -117,6 +118,16 @@ public static class AppSettingsNormalizer
         {
             return trimmed;
         }
+    }
+
+    private static Dictionary<string, float> CleanWidths(Dictionary<string, float>? widths)
+    {
+        var result = new Dictionary<string, float>(StringComparer.Ordinal);
+        if (widths is null) return result;
+        foreach ((string key, float value) in widths)
+            if (!string.IsNullOrWhiteSpace(key) && value > 0 && float.IsFinite(value))
+                result[key] = Math.Clamp(value, 40, 4000);
+        return result;
     }
 
     private static Dictionary<string, float> CleanWeights(Dictionary<string, float>? weights)

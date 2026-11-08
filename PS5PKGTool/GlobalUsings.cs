@@ -1,8 +1,11 @@
 global using System;
 global using System.Collections.Generic;
-global using System.Drawing;
 global using System.IO;
 global using System.Linq;
 global using System.Threading;
 global using System.Threading.Tasks;
-global using System.Windows.Forms;
+global using Avalonia;
+global using Avalonia.Controls;
+global using Avalonia.Controls.Primitives;
+global using Avalonia.Layout;
+global using Avalonia.Media;

@@ -34,14 +34,21 @@ public sealed class AppSettings
     public List<SavedLibraryView> SavedViews { get; set; } = [];
     public List<string> LibraryColumnOrder { get; set; } = [];
     public List<string> LibraryHiddenColumns { get; set; } = [];
-    /// <summary>Remembered column fill weights by column name so user-resized widths survive a restart.</summary>
+    /// <summary>Legacy proportional weights, superseded by <see cref="LibraryColumnWidths"/>.</summary>
     public Dictionary<string, float> LibraryColumnWeights { get; set; } = [];
+    /// <summary>Remembered pixel widths by column name so user-resized widths survive a restart.</summary>
+    public Dictionary<string, float> LibraryColumnWidths { get; set; } = [];
 
     // Appearance
     public string Theme { get; set; } = "Default (Charcoal)";
     public int GridRowHeight { get; set; } = 22;
     public bool ShowThumbnails { get; set; } = true;
     public bool ShowGridLines { get; set; } = true;
+    // View menu: interface elements
+    public bool ShowFilterBar { get; set; } = true;
+    public bool ShowFilterChips { get; set; } = true;
+    public bool ShowWorkspacePane { get; set; } = true;
+    public bool ShowStatusBar { get; set; } = true;
     /// <summary>Show the inline file preview pane in the Files tab (list-only when disabled).</summary>
     public bool ShowFilePreview { get; set; } = true;
     public string DefaultGroupBy { get; set; } = string.Empty;

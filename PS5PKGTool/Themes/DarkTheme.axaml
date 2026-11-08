@@ -1,0 +1,455 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="using:PS5PKGTool.Controls">
+  <Styles.Resources>
+    <!-- Fallback palette (the default Charcoal theme). ThemeManager replaces every brush at start-up
+         and whenever the user picks another palette, so views always use DynamicResource. -->
+    <SolidColorBrush x:Key="Theme.GreyBackground" Color="#3C3F41" />
+    <SolidColorBrush x:Key="Theme.HeaderBackground" Color="#393C3E" />
+    <SolidColorBrush x:Key="Theme.MediumBackground" Color="#313335" />
+    <SolidColorBrush x:Key="Theme.LightBackground" Color="#45494A" />
+    <SolidColorBrush x:Key="Theme.LighterBackground" Color="#5F6566" />
+    <SolidColorBrush x:Key="Theme.LightestBackground" Color="#B2B2B2" />
+    <SolidColorBrush x:Key="Theme.DarkBackground" Color="#2B2B2B" />
+    <SolidColorBrush x:Key="Theme.BlueBackground" Color="#424D5F" />
+    <SolidColorBrush x:Key="Theme.DarkBlueBackground" Color="#343942" />
+    <SolidColorBrush x:Key="Theme.LightBorder" Color="#515151" />
+    <SolidColorBrush x:Key="Theme.DarkBorder" Color="#333333" />
+    <SolidColorBrush x:Key="Theme.DarkBlueBorder" Color="#333D4E" />
+    <SolidColorBrush x:Key="Theme.LightBlueBorder" Color="#566172" />
+    <SolidColorBrush x:Key="Theme.LightText" Color="#DCDCDC" />
+    <SolidColorBrush x:Key="Theme.DisabledText" Color="#999999" />
+    <SolidColorBrush x:Key="Theme.BlueHighlight" Color="#6897BB" />
+    <SolidColorBrush x:Key="Theme.BlueSelection" Color="#4B6EAF" />
+    <SolidColorBrush x:Key="Theme.GreyHighlight" Color="#7A8084" />
+    <SolidColorBrush x:Key="Theme.GreySelection" Color="#5C5C5C" />
+    <SolidColorBrush x:Key="Theme.DarkGreySelection" Color="#525252" />
+    <SolidColorBrush x:Key="Theme.ActiveControl" Color="#9FB2C4" />
+    <SolidColorBrush x:Key="Theme.MenuItemToggledOnFill" Color="#695445" />
+    <SolidColorBrush x:Key="Theme.MenuItemToggledOnBorder" Color="#E18044" />
+    <SolidColorBrush x:Key="Theme.SelectionText" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="Theme.ErrorText" Color="#D08080" />
+    <SolidColorBrush x:Key="Theme.ErrorSelectionText" Color="#FFBEBE" />
+
+    <!-- Short aliases so longer expressions stay readable in the views. -->
+    <SolidColorBrush x:Key="GreyBackground" Color="#3C3F41" />
+    <SolidColorBrush x:Key="HeaderBackground" Color="#393C3E" />
+    <SolidColorBrush x:Key="MediumBackground" Color="#313335" />
+    <SolidColorBrush x:Key="LightBackground" Color="#45494A" />
+    <SolidColorBrush x:Key="LighterBackground" Color="#5F6566" />
+    <SolidColorBrush x:Key="DarkBackground" Color="#2B2B2B" />
+    <SolidColorBrush x:Key="BlueBackground" Color="#424D5F" />
+    <SolidColorBrush x:Key="LightBorder" Color="#515151" />
+    <SolidColorBrush x:Key="DarkBorder" Color="#333333" />
+    <SolidColorBrush x:Key="LightText" Color="#DCDCDC" />
+    <SolidColorBrush x:Key="DisabledText" Color="#999999" />
+    <SolidColorBrush x:Key="BlueHighlight" Color="#6897BB" />
+    <SolidColorBrush x:Key="BlueSelection" Color="#4B6EAF" />
+    <SolidColorBrush x:Key="GreySelection" Color="#5C5C5C" />
+    <SolidColorBrush x:Key="SelectionText" Color="#FFFFFF" />
+
+    <!-- Section container: a border with a caption bar, the Avalonia equivalent of DarkSectionPanel. -->
+    <ControlTheme x:Key="{x:Type controls:SectionPanel}" TargetType="controls:SectionPanel">
+      <Setter Property="Background" Value="{DynamicResource Theme.GreyBackground}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Theme.DarkBorder}" />
+      <Setter Property="Padding" Value="6" />
+      <Setter Property="Template">
+        <ControlTemplate>
+          <Border Background="{TemplateBinding Background}"
+                  BorderBrush="{TemplateBinding BorderBrush}"
+                  BorderThickness="1"
+                  CornerRadius="2">
+            <DockPanel>
+              <Border DockPanel.Dock="Top"
+                      Background="{DynamicResource Theme.MediumBackground}"
+                      BorderBrush="{DynamicResource Theme.DarkBorder}"
+                      BorderThickness="0,0,0,1"
+                      Padding="8,4">
+                <DockPanel>
+                  <TextBlock DockPanel.Dock="Right"
+                             Text="{TemplateBinding HeaderNote}"
+                             Foreground="{DynamicResource Theme.DisabledText}"
+                             VerticalAlignment="Center" />
+                  <TextBlock Text="{TemplateBinding Header}"
+                             Foreground="{DynamicResource Theme.LightText}"
+                             FontWeight="SemiBold"
+                             VerticalAlignment="Center" />
+                </DockPanel>
+              </Border>
+              <ContentPresenter Name="PART_ContentPresenter"
+                                Content="{TemplateBinding Content}"
+                                ContentTemplate="{TemplateBinding ContentTemplate}"
+                                Margin="{TemplateBinding Padding}" />
+            </DockPanel>
+          </Border>
+        </ControlTemplate>
+      </Setter>
+    </ControlTheme>
+  </Styles.Resources>
+
+  <!-- ===================== Window and typography ===================== -->
+  <Style Selector="Window">
+    <Setter Property="Background" Value="{DynamicResource Theme.GreyBackground}" />
+    <Setter Property="Foreground" Value="{DynamicResource Theme.LightText}" />
+    <Setter Property="FontFamily" Value="Segoe UI, Inter, Noto Sans, Cantarell, sans-serif" />
+    <Setter Property="FontSize" Value="12" />
+  </Style>
+
+  <Style Selector="TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource Theme.LightText}" />
+    <Setter Property="FontSize" Value="12" />
+  </Style>
+
+  <Style Selector="TextBlock.caption">
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="Margin" Value="0,0,6,0" />
+  </Style>
+
+  <Style Selector="TextBlock.header">
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Foreground" Value="{DynamicResource Theme.LightText}" />
+  </Style>
+
+  <Style Selector="TextBlock.muted">
+    <Setter Property="Foreground" Value="{DynamicResource Theme.DisabledText}" />
+  </Style>
+
+  <Style Selector="TextBlock.error">
+    <Setter Property="Foreground" Value="{DynamicResource Theme.ErrorText}" />
+  </Style>
+
+  <Style Selector="TextBlock.mono">
+    <Setter Property="FontFamily" Value="Cascadia Mono, Consolas, DejaVu Sans Mono, monospace" />
+    <Setter Property="FontSize" Value="12" />
+  </Style>
+
+  <!-- ===================== Menu / context menu ===================== -->
+  <Style Selector="Menu">
+    <Setter Property="Background" Value="{DynamicResource Theme.HeaderBackground}" />
+    <Setter Property="Foreground" Value="{DynamicResource Theme.LightText}" />
+    <Setter Property="Height" Value="26" />
+    <Setter Property="Padding" Value="2,0" />
+  </Style>
+
+  <Style Selector="Menu > MenuItem">
+    <Setter Property="Padding" Value="10,3" />
+    <Setter Property="Foreground" Value="{DynamicResource Theme.LightText}" />
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+
+  <Style Selector="MenuItem">
+    <Setter Property="Foreground" Value="{DynamicResource Theme.LightText}" />
+    <Setter Property="Background" Value="{DynamicResource Theme.MediumBackground}" />
+  </Style>
+
+  <Style Selector="MenuItem:pointerover">
+    <Setter Property="Background" Value="{DynamicResource Theme.LightBackground}" />
+  </Style>
+
+  <Style Selector="MenuItem:pointerover /template/ Border#PART_LayoutRoot">
+    <Setter Property="Background" Value="{DynamicResource Theme.LightBackground}" />
+  </Style>
+
+  <Style Selector="MenuFlyoutPresenter">
+    <Setter Property="Background" Value="{DynamicResource Theme.MediumBackground}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Theme.DarkBorder}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="Padding" Value="2" />
+  </Style>
+
+  <Style Selector="ContextMenu">
+    <Setter Property="Background" Value="{DynamicResource Theme.MediumBackground}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Theme.DarkBorder}" />
+    <Setter Property="BorderThickness" Value="1" />
+  </Style>
+
+  <Style Selector="ContextMenu MenuItem">
+    <Setter Property="Padding" Value="24,4,14,4" />
+  </Style>
+
+  <Style Selector="Separator">
+    <Setter Property="Background" Value="{DynamicResource Theme.DarkBorder}" />
+    <Setter Property="Height" Value="1" />
+    <Setter Property="Margin" Value="2,3" />
+  </Style>
+
+  <!-- ===================== Buttons ===================== -->
+  <Style Selector="Button">
+    <Setter Property="Background" Value="{DynamicResource Theme.LightBackground}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Theme.DarkBorder}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="Foreground" Value="{DynamicResource Theme.LightText}" />
+    <Setter Property="CornerRadius" Value="2" />
+    <Setter Property="Padding" Value="8,3" />
+    <Setter Property="MinHeight" Value="24" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+
+  <Style Selector="Button:pointerover">
+    <Setter Property="Background" Value="{DynamicResource Theme.LighterBackground}" />
+  </Style>
+
+  <Style Selector="Button:pressed">
+    <Setter Property="Background" Value="{DynamicResource Theme.MediumBackground}" />
+  </Style>
+
+  <Style Selector="Button:disabled">
+    <Setter Property="Foreground" Value="{DynamicResource Theme.DisabledText}" />
+    <Setter Property="Background" Value="{DynamicResource Theme.MediumBackground}" />
+  </Style>
+
+  <Style Selector="Button.accent">
+    <Setter Property="Background" Value="{DynamicResource Theme.BlueBackground}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Theme.LightBlueBorder}" />
+  </Style>
+
+  <Style Selector="Button.chip">
+    <Setter Property="Background" Value="{DynamicResource Theme.LightBackground}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Theme.DarkBorder}" />
+    <Setter Property="Padding" Value="7,2" />
+    <Setter Property="MinHeight" Value="20" />
+    <Setter Property="Margin" Value="0,0,4,4" />
+    <Setter Property="FontSize" Value="11" />
+  </Style>
+
+  <Style Selector="Button.link">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="2" />
+    <Setter Property="MinHeight" Value="18" />
+    <Setter Property="Foreground" Value="{DynamicResource Theme.BlueHighlight}" />
+  </Style>
+
+  <!-- ===================== Text input ===================== -->
+  <Style Selector="TextBox">
+    <Setter Property="Background" Value="{DynamicResource Theme.MediumBackground}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Theme.DarkBorder}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="Foreground" Value="{DynamicResource Theme.LightText}" />
+    <Setter Property="SelectionBrush" Value="{DynamicResource Theme.BlueSelection}" />
+    <Setter Property="CaretBrush" Value="{DynamicResource Theme.LightText}" />
+    <Setter Property="CornerRadius" Value="2" />
+    <Setter Property="Padding" Value="5,3" />
+    <Setter Property="MinHeight" Value="24" />
+  </Style>
+
+  <Style Selector="TextBox:pointerover">
+    <Setter Property="BorderBrush" Value="{DynamicResource Theme.LightBorder}" />
+  </Style>
+
+  <Style Selector="TextBox:focus">
+    <Setter Property="BorderBrush" Value="{DynamicResource Theme.BlueHighlight}" />
+  </Style>
+
+  <Style Selector="TextBox.search">
+    <Setter Property="Padding" Value="22,3,5,3" />
+  </Style>
+
+  <Style Selector="TextBox.watermark">
+    <Setter Property="WatermarkForeground" Value="{DynamicResource Theme.DisabledText}" />
+  </Style>
+
+  <!-- ===================== Combo boxes ===================== -->
+  <Style Selector="ComboBox">
+    <Setter Property="Background" Value="{DynamicResource Theme.LightBackground}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Theme.DarkBorder}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="Foreground" Value="{DynamicResource Theme.LightText}" />
+    <Setter Property="CornerRadius" Value="2" />
+    <Setter Property="Padding" Value="6,3" />
+    <Setter Property="MinHeight" Value="24" />
+  </Style>
+
+  <Style Selector="ComboBox:pointerover">
+    <Setter Property="BorderBrush" Value="{DynamicResource Theme.LightBorder}" />
+  </Style>
+
+  <Style Selector="ComboBoxItem">
+    <Setter Property="Background" Value="{DynamicResource Theme.MediumBackground}" />
+    <Setter Property="Foreground" Value="{DynamicResource Theme.LightText}" />
+    <Setter Property="Padding" Value="6,3" />
+  </Style>
+
+  <Style Selector="ComboBoxItem:pointerover">
+    <Setter Property="Background" Value="{DynamicResource Theme.LightBackground}" />
+  </Style>
+
+  <Style Selector="ComboBoxItem:selected">
+    <Setter Property="Background" Value="{DynamicResource Theme.BlueSelection}" />
+    <Setter Property="Foreground" Value="{DynamicResource Theme.SelectionText}" />
+  </Style>
+
+  <!-- ===================== Check boxes ===================== -->
+  <Style Selector="CheckBox">
+    <Setter Property="Foreground" Value="{DynamicResource Theme.LightText}" />
+    <Setter Property="MinHeight" Value="20" />
+  </Style>
+
+  <Style Selector="RadioButton">
+    <Setter Property="Foreground" Value="{DynamicResource Theme.LightText}" />
+    <Setter Property="MinHeight" Value="20" />
+  </Style>
+
+  <!-- ===================== Tabs ===================== -->
+  <Style Selector="TabControl">
+    <Setter Property="Background" Value="{DynamicResource Theme.GreyBackground}" />
+    <Setter Property="Padding" Value="0" />
+  </Style>
+
+  <Style Selector="TabItem">
+    <Setter Property="Background" Value="{DynamicResource Theme.MediumBackground}" />
+    <Setter Property="Foreground" Value="{DynamicResource Theme.LightText}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Theme.DarkBorder}" />
+    <Setter Property="Padding" Value="12,4" />
+    <Setter Property="MinHeight" Value="28" />
+    <Setter Property="FontSize" Value="12" />
+  </Style>
+
+  <Style Selector="TabItem:pointerover">
+    <Setter Property="Background" Value="{DynamicResource Theme.LightBackground}" />
+  </Style>
+
+  <Style Selector="TabItem:selected">
+    <Setter Property="Background" Value="{DynamicResource Theme.GreyBackground}" />
+    <Setter Property="Foreground" Value="{DynamicResource Theme.LightText}" />
+  </Style>
+
+  <Style Selector="TabItem:selected /template/ Border#PART_SelectedPipe">
+    <Setter Property="Background" Value="{DynamicResource Theme.BlueHighlight}" />
+  </Style>
+
+  <!-- ===================== Lists and trees ===================== -->
+  <Style Selector="ListBox">
+    <Setter Property="Background" Value="{DynamicResource Theme.GreyBackground}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Theme.DarkBorder}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="Foreground" Value="{DynamicResource Theme.LightText}" />
+  </Style>
+
+  <Style Selector="ListBoxItem">
+    <Setter Property="Foreground" Value="{DynamicResource Theme.LightText}" />
+    <Setter Property="Padding" Value="4,2" />
+    <Setter Property="MinHeight" Value="0" />
+  </Style>
+
+  <Style Selector="ListBoxItem:selected">
+    <Setter Property="Background" Value="{DynamicResource Theme.BlueSelection}" />
+    <Setter Property="Foreground" Value="{DynamicResource Theme.SelectionText}" />
+  </Style>
+
+  <Style Selector="TreeView">
+    <Setter Property="Background" Value="{DynamicResource Theme.GreyBackground}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Theme.DarkBorder}" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Foreground" Value="{DynamicResource Theme.LightText}" />
+  </Style>
+
+  <Style Selector="TreeViewItem">
+    <Setter Property="Foreground" Value="{DynamicResource Theme.LightText}" />
+    <Setter Property="MinHeight" Value="20" />
+    <Setter Property="Padding" Value="2,1" />
+  </Style>
+
+  <Style Selector="TreeViewItem:selected">
+    <Setter Property="Background" Value="{DynamicResource Theme.BlueSelection}" />
+    <Setter Property="Foreground" Value="{DynamicResource Theme.SelectionText}" />
+  </Style>
+
+  <!-- ===================== Data grid ===================== -->
+  <Style Selector="DataGrid">
+    <Setter Property="Background" Value="{DynamicResource Theme.GreyBackground}" />
+    <Setter Property="Foreground" Value="{DynamicResource Theme.LightText}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Theme.DarkBorder}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="GridLinesVisibility" Value="Horizontal" />
+    <Setter Property="HorizontalGridLinesBrush" Value="{DynamicResource Theme.DarkBorder}" />
+    <Setter Property="VerticalGridLinesBrush" Value="{DynamicResource Theme.DarkBorder}" />
+    <Setter Property="RowHeight" Value="22" />
+    <Setter Property="HeadersVisibility" Value="Column" />
+    <Setter Property="CanUserReorderColumns" Value="False" />
+    <Setter Property="CanUserResizeColumns" Value="True" />
+    <Setter Property="SelectionMode" Value="Extended" />
+  </Style>
+
+  <Style Selector="DataGridColumnHeader">
+    <Setter Property="Background" Value="{DynamicResource Theme.MediumBackground}" />
+    <Setter Property="Foreground" Value="{DynamicResource Theme.LightText}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Theme.DarkBorder}" />
+    <Setter Property="BorderThickness" Value="0,0,1,1" />
+    <Setter Property="Padding" Value="6,3" />
+    <Setter Property="MinHeight" Value="24" />
+  </Style>
+
+  <Style Selector="DataGridRow">
+    <Setter Property="Background" Value="{DynamicResource Theme.GreyBackground}" />
+    <Setter Property="Foreground" Value="{DynamicResource Theme.LightText}" />
+    <Setter Property="MinHeight" Value="22" />
+  </Style>
+
+  <Style Selector="DataGridRow:pointerover">
+    <Setter Property="Background" Value="{DynamicResource Theme.LightBackground}" />
+  </Style>
+
+  <Style Selector="DataGridRow:selected">
+    <Setter Property="Background" Value="{DynamicResource Theme.BlueSelection}" />
+    <Setter Property="Foreground" Value="{DynamicResource Theme.SelectionText}" />
+  </Style>
+
+  <Style Selector="DataGridCell">
+    <Setter Property="Padding" Value="5,2" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Foreground" Value="{DynamicResource Theme.LightText}" />
+  </Style>
+
+  <Style Selector="DataGridCell:selected">
+    <Setter Property="Foreground" Value="{DynamicResource Theme.SelectionText}" />
+  </Style>
+
+  <!-- ===================== Misc controls ===================== -->
+  <Style Selector="ProgressBar">
+    <Setter Property="Background" Value="{DynamicResource Theme.DarkBackground}" />
+    <Setter Property="Foreground" Value="{DynamicResource Theme.BlueSelection}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Theme.DarkBorder}" />
+    <Setter Property="MinHeight" Value="14" />
+    <Setter Property="CornerRadius" Value="1" />
+  </Style>
+
+  <Style Selector="ScrollBar">
+    <Setter Property="Background" Value="{DynamicResource Theme.MediumBackground}" />
+  </Style>
+
+  <Style Selector="ToolTip">
+    <Setter Property="Background" Value="{DynamicResource Theme.MediumBackground}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Theme.DarkBorder}" />
+    <Setter Property="Foreground" Value="{DynamicResource Theme.LightText}" />
+    <Setter Property="Padding" Value="6,4" />
+  </Style>
+
+  <Style Selector="Border.statusbar">
+    <Setter Property="Background" Value="{DynamicResource Theme.HeaderBackground}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Theme.DarkBorder}" />
+    <Setter Property="BorderThickness" Value="0,1,0,0" />
+  </Style>
+
+  <Style Selector="Border.section">
+    <Setter Property="Background" Value="{DynamicResource Theme.MediumBackground}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Theme.DarkBorder}" />
+    <Setter Property="BorderThickness" Value="0,0,0,1" />
+  </Style>
+
+  <Style Selector="Border.toolbar">
+    <Setter Property="Background" Value="{DynamicResource Theme.MediumBackground}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Theme.DarkBorder}" />
+    <Setter Property="BorderThickness" Value="0,0,0,1" />
+    <Setter Property="Padding" Value="8,4" />
+  </Style>
+
+  <Style Selector="GridSplitter">
+    <Setter Property="Background" Value="{DynamicResource Theme.DarkBackground}" />
+  </Style>
+
+  <Style Selector="GridSplitter:pointerover">
+    <Setter Property="Background" Value="{DynamicResource Theme.BlueHighlight}" />
+  </Style>
+</Styles>
