@@ -7,7 +7,7 @@
 [![Stars](https://img.shields.io/github/stars/pearlxcore/PS5PKGTool.svg)](https://github.com/pearlxcore/PS5PKGTool)
 [![.NET](https://img.shields.io/badge/.NET-10-blue)]()
 
-A Windows app for managing your PS5 dump and image collection, reading PS5 packages, and building or converting images.
+A cross-platform app for managing your PS5 dump and image collection, reading PS5 packages, and building or converting images. The Avalonia UI runs on Windows, Linux and macOS.
 
 Suggestions are welcome. Report bugs [here](https://github.com/pearlxcore/PS5PkgTool/issues).
 
@@ -34,7 +34,7 @@ Suggestions are welcome. Report bugs [here](https://github.com/pearlxcore/PS5Pkg
 - **Saved views** remember a query, filters, grouping, sort and column layout under a name.
 - A **Role** column labels each item Base, Update, DLC or App and marks updates that a newer patch supersedes.
 - Filter by Category, Region, and Format, use the presets for common cases, or type in the search box with a small query grammar (`title:`, `id:`, `content:`, `category:`, `role:`, `region:`, `size:>50GB`, `version:`, `fw:`, `feature:`, `path:`, `-exclude`, quoted phrases, and `|` for OR). Add `=` for an exact value (`id:=PPSA12345`); a "Check query" hint appears when a token cannot be understood.
-- Right click actions: copy Title, Title ID, Content ID, file name or path, rename (with a preview of every new name), move into folders (with a preview of every destination), delete to the Recycle Bin, save artwork, extract a package, and convert the selected image. Export the selected rows, the visible rows, or the whole library; **Find Duplicates** hashes `param.json` to separate byte-identical copies from possible ones.
+- Right click actions: copy Title, Title ID, Content ID, file name or path, rename (with a preview of every new name), move into folders (with a preview of every destination), delete to the system trash, save artwork, extract a package, and convert the selected image. Export the selected rows, the visible rows, or the whole library; **Find Duplicates** hashes `param.json` to separate byte-identical copies from possible ones.
 - Appearance settings include a Compact / Normal / Comfortable density preset for the list.
 
 **Game Details and Files**
@@ -104,9 +104,10 @@ your folders, sources, recent folders and saved views.
 
 # Requirement
 
-- Windows 10 or 11 (64-bit).
+- Windows 10/11, a modern Linux desktop, or macOS (64-bit).
 
 The release build is self-contained and includes the .NET runtime, so nothing else needs to be installed.
+Media previews use libVLC; install it with your package manager (for example `vlc` on Linux) to play audio and video.
 
 # Building from source
 
@@ -118,12 +119,9 @@ without them cannot build:
 - [`third_party/LibProsperoPkg`](https://github.com/SvenGDK/LibProsperoPKG) - the alternative
   GPL-3.0 package build/validate/extract backend.
 
-Building from source also needs the [DarkUI](https://github.com/pearlxcore/DarkUI) project. Clone it
-next to this repository (same parent folder, folder named `DarkUI`) so the project reference
-resolves:
+The UI uses Avalonia, so no separate UI project needs to be cloned:
 
 ```
-git clone https://github.com/pearlxcore/DarkUI
 git clone --recurse-submodules https://github.com/pearlxcore/PS5PKGTool
 ```
 
@@ -138,10 +136,10 @@ Then build with the .NET 10 SDK.
 # Build
 
 ```
-dotnet build .\PS5PKGTool.slnx -c Release
+dotnet build PS5PKGTool/PS5PKGTool.csproj -c Release
 ```
 
-The app is written to `PS5PKGTool\bin\Release\net10.0-windows\PS5 PKG Tool.exe`.
+The app is written to `PS5PKGTool/bin/Release/net10.0/`.
 
 # Screenshot
 
