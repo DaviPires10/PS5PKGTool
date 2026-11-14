@@ -352,34 +352,46 @@ public partial class MainWindow : Window
 
     private async void AddFolder_Click(object? sender, EventArgs e)
     {
-        string? selected = await PickFolderAsync("Select a PS5 library folder");
-        if (selected is null) return;
-        if (!_settings.LibraryFolders.Contains(selected, StringComparer.OrdinalIgnoreCase))
+        IReadOnlyList<string> folders = await PickFoldersAsync("Select one or more PS5 library folders");
+        if (folders.Count == 0) return;
+        bool changed = false;
+        foreach (string selected in folders)
         {
-            _settings.LibraryFolders.Add(selected);
-            _stateStore.SaveSettings(_settings);
+            if (!_settings.LibraryFolders.Contains(selected, StringComparer.OrdinalIgnoreCase))
+            {
+                _settings.LibraryFolders.Add(selected);
+                changed = true;
+            }
+            AddRecentFolder(selected);
         }
-        AddRecentFolder(selected);
+        if (changed) _stateStore.SaveSettings(_settings);
         await ScanAsync(ScanRoots(), merge: false);
     }
 
     private async void OpenDump_Click(object? sender, EventArgs e)
     {
-        string? selected = await PickFolderAsync("Select the root of an unpacked PS5 game dump");
-        if (selected is null) return;
-        AddRecentFolder(selected);
-        RememberManualSource(selected);
-        await ScanAsync([selected], merge: true);
+        IReadOnlyList<string> folders = await PickFoldersAsync(
+            "Select the root of one or more unpacked PS5 game dumps");
+        if (folders.Count == 0) return;
+        foreach (string folder in folders)
+        {
+            AddRecentFolder(folder);
+            RememberManualSource(folder);
+        }
+        await ScanAsync(folders, merge: true);
     }
 
     private async void OpenPackage_Click(object? sender, EventArgs e)
     {
-        string? selected = await PickFileAsync("Open PS5 container or image",
+        IReadOnlyList<string> files = await PickFilesAsync("Open PS5 containers or images",
             new FilePickerFileType("PS5 packages and images") { Patterns = ["*.pkg", "*.ffpkg", "*.ffpfsc", "*.exfat", "*.ffpfs"] });
-        if (selected is null) return;
-        AddRecentFolder(selected);
-        RememberManualSource(selected);
-        await ScanAsync([selected], merge: true);
+        if (files.Count == 0) return;
+        foreach (string file in files)
+        {
+            AddRecentFolder(file);
+            RememberManualSource(file);
+        }
+        await ScanAsync(files, merge: true);
     }
 
     private async void Refresh_Click(object? sender, EventArgs e)
@@ -402,6 +414,27 @@ public partial class MainWindow : Window
             AllowMultiple = false
         });
         return result.Count > 0 ? result[0].TryGetLocalPath() : null;
+    }
+
+    private async Task<IReadOnlyList<string>> PickFoldersAsync(string title)
+    {
+        IReadOnlyList<IStorageFolder> result = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+        {
+            Title = title,
+            AllowMultiple = true
+        });
+        return result.Select(folder => folder.TryGetLocalPath()).OfType<string>().ToList();
+    }
+
+    private async Task<IReadOnlyList<string>> PickFilesAsync(string title, params FilePickerFileType[] filters)
+    {
+        IReadOnlyList<IStorageFile> result = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = title,
+            AllowMultiple = true,
+            FileTypeFilter = [.. filters, FilePickerFileTypes.All]
+        });
+        return result.Select(file => file.TryGetLocalPath()).OfType<string>().ToList();
     }
 
     private async Task<string?> PickFileAsync(string title, params FilePickerFileType[] filters)

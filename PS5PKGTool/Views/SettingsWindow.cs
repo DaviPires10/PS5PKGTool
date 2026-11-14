@@ -43,8 +43,8 @@ internal sealed class SettingsWindow : Window
     private readonly CheckBox _chkRecursive = new() { Content = "Scan subfolders" };
     private readonly CheckBox _chkRefreshOnStartup = new() { Content = "Refresh the library on startup" };
     private readonly CheckBox _chkCheckUpdates = new() { Content = "Check for updates on startup" };
-    private readonly ListBox _lstFolders = new() { Height = 150 };
-    private readonly ListBox _lstManualSources = new() { Height = 120 };
+    private readonly ListBox _lstFolders = new() { Height = 174 };
+    private readonly ListBox _lstManualSources = new() { Height = 174 };
     private readonly ComboBox _cboTheme = new() { Width = 240 };
     private readonly ComboBox _cboDensity = new() { Width = 140 };
     private readonly NumericUpDown _nudRowHeight = new() { Minimum = 16, Maximum = 48, Width = 100 };
