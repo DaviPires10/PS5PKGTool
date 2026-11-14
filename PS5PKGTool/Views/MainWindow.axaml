@@ -67,8 +67,9 @@
 
         <Grid x:Name="panelFilterBar" Grid.Row="0" RowDefinitions="Auto,Auto" Margin="10,8,10,0">
           <!-- search / preset / clear -->
-          <Grid Grid.Row="0" ColumnDefinitions="520,Auto,Auto,Auto,Auto">
+          <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto,Auto,Auto">
             <controls:SearchBox x:Name="searchLibrary" Grid.Column="0"
+                                MaxWidth="520" HorizontalAlignment="Left"
                                 PlaceholderText="Search: title:, id:, size:&gt;50GB, -exclude"
                                 ToolTip.Tip="Search the PS5 library by title, ID, size and more." />
             <TextBlock x:Name="lblFilterPreset" Grid.Column="1" Classes="caption"
@@ -216,25 +217,24 @@
                   <TextBlock x:Name="lblTrophySummary" Grid.Row="0" Margin="10,0"
                              VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
                              Text="Select a game to load trophies." />
-                  <Grid Grid.Row="1" ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,*,Auto"
-                        Margin="8,0,8,6">
-                    <Button x:Name="btnTrophySaveIcons" Grid.Column="0" Content="Save Icons..."
-                            Width="104" />
-                    <Button x:Name="btnTrophyExportCsv" Grid.Column="1" Content="Export CSV..."
-                            Width="110" Margin="6,0,0,0" />
-                    <CheckBox x:Name="chkTrophyPlatinum" Grid.Column="2" Content="Platinum"
-                              Margin="14,0,0,0" VerticalAlignment="Center" />
-                    <CheckBox x:Name="chkTrophyGold" Grid.Column="3" Content="Gold"
-                              Margin="10,0,0,0" VerticalAlignment="Center" />
-                    <CheckBox x:Name="chkTrophySilver" Grid.Column="4" Content="Silver"
-                              Margin="10,0,0,0" VerticalAlignment="Center" />
-                    <CheckBox x:Name="chkTrophyBronze" Grid.Column="5" Content="Bronze"
-                              Margin="10,0,0,0" VerticalAlignment="Center" />
-                    <CheckBox x:Name="chkTrophyShowHidden" Grid.Column="6" Content="Show hidden"
-                              IsChecked="True" Margin="14,0,0,0" VerticalAlignment="Center" />
-                    <controls:SearchBox x:Name="searchTrophy" Grid.Column="8" PlaceholderText="Search trophies"
-                                        HorizontalAlignment="Stretch" MaxWidth="420" />
-                  </Grid>
+                  <WrapPanel Grid.Row="1" Margin="8,0,8,6" Orientation="Horizontal">
+                    <Button x:Name="btnTrophySaveIcons" Content="Save Icons..."
+                            Width="104" Margin="0,0,6,0" />
+                    <Button x:Name="btnTrophyExportCsv" Content="Export CSV..."
+                            Width="110" Margin="0,0,6,0" />
+                    <CheckBox x:Name="chkTrophyPlatinum" Content="Platinum"
+                              Margin="14,0,10,0" VerticalAlignment="Center" />
+                    <CheckBox x:Name="chkTrophyGold" Content="Gold"
+                              Margin="0,0,10,0" VerticalAlignment="Center" />
+                    <CheckBox x:Name="chkTrophySilver" Content="Silver"
+                              Margin="0,0,10,0" VerticalAlignment="Center" />
+                    <CheckBox x:Name="chkTrophyBronze" Content="Bronze"
+                              Margin="0,0,14,0" VerticalAlignment="Center" />
+                    <CheckBox x:Name="chkTrophyShowHidden" Content="Show hidden"
+                              IsChecked="True" Margin="0,0,14,0" VerticalAlignment="Center" />
+                    <controls:SearchBox x:Name="searchTrophy" PlaceholderText="Search trophies"
+                                        Width="260" MaxWidth="420" />
+                  </WrapPanel>
                   <controls:TableView x:Name="gridTrophies" Grid.Row="2" RowHeight="48">
                     <controls:TableView.ContextMenu>
                       <ContextMenu x:Name="contextTrophies">
@@ -253,14 +253,15 @@
                   <TextBlock x:Name="lblActivitiesSummary" Grid.Row="0" Margin="10,0"
                              VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
                              Text="Select a game to load activity definitions." />
-                  <Grid Grid.Row="1" ColumnDefinitions="Auto,Auto,*,Auto" Margin="8,0,8,6">
-                    <Button x:Name="btnUdsCopyAll" Grid.Column="0" Content="Copy All" Width="96" />
-                    <Button x:Name="btnUdsCopySelected" Grid.Column="1" Content="Copy Selected"
-                            Width="120" Margin="6,0,0,0" />
-                    <controls:SearchBox x:Name="searchUds" Grid.Column="3"
+                  <WrapPanel Grid.Row="1" Margin="8,0,8,6" Orientation="Horizontal">
+                    <Button x:Name="btnUdsCopyAll" Content="Copy All" Width="96"
+                            Margin="0,0,6,0" />
+                    <Button x:Name="btnUdsCopySelected" Content="Copy Selected"
+                            Width="120" Margin="0,0,12,0" />
+                    <controls:SearchBox x:Name="searchUds"
                                         PlaceholderText="Search events, stats, enums, rules"
-                                        Width="292" HorizontalAlignment="Right" />
-                  </Grid>
+                                        Width="292" />
+                  </WrapPanel>
                   <TabControl x:Name="tabsUds" Grid.Row="2" SelectedIndex="0">
                     <TabItem x:Name="tabUdsEvents" Header="Events">
                       <Grid RowDefinitions="*,5,*">
@@ -378,19 +379,18 @@
                   <TextBlock x:Name="lblExecutableSummary" Grid.Row="0" Margin="10,0"
                              VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
                              Text="Select a game to inspect eboot.bin and modules." />
-                  <Grid Grid.Row="1" ColumnDefinitions="Auto,Auto,Auto,Auto,*,Auto"
-                        Margin="8,0,8,6">
-                    <Button x:Name="btnExecExtract" Grid.Column="0" Content="Extract..." Width="110" />
-                    <Button x:Name="btnExecCopyAll" Grid.Column="1" Content="Copy All" Width="96"
-                            Margin="6,0,0,0" />
-                    <Button x:Name="btnExecCopySelected" Grid.Column="2" Content="Copy Selected"
-                            Width="120" Margin="6,0,0,0" />
-                    <Button x:Name="btnExecHash" Grid.Column="3" Content="SHA-256..." Width="130"
-                            Margin="6,0,0,0" />
-                    <controls:SearchBox x:Name="searchExecutable" Grid.Column="5"
-                                        PlaceholderText="Search modules" Width="292"
-                                        HorizontalAlignment="Right" />
-                  </Grid>
+                  <WrapPanel Grid.Row="1" Margin="8,0,8,6" Orientation="Horizontal">
+                    <Button x:Name="btnExecExtract" Content="Extract..." Width="110"
+                            Margin="0,0,6,0" />
+                    <Button x:Name="btnExecCopyAll" Content="Copy All" Width="96"
+                            Margin="0,0,6,0" />
+                    <Button x:Name="btnExecCopySelected" Content="Copy Selected"
+                            Width="120" Margin="0,0,6,0" />
+                    <Button x:Name="btnExecHash" Content="SHA-256..." Width="130"
+                            Margin="0,0,12,0" />
+                    <controls:SearchBox x:Name="searchExecutable"
+                                        PlaceholderText="Search modules" Width="292" />
+                  </WrapPanel>
                   <TabControl x:Name="tabsExecutable" Grid.Row="2" SelectedIndex="0">
                     <TabItem x:Name="tabExecModules" Header="Modules">
                       <controls:TableView x:Name="gridModules" />
@@ -649,22 +649,23 @@
                 <!-- Options -->
                 <TabItem x:Name="tabTargetOptions" Header="Options">
                   <Grid RowDefinitions="Auto,Auto,*" ColumnDefinitions="110,*" Margin="10,8">
-                    <WrapPanel x:Name="panelImageOptionsOutput" Grid.Row="0" Grid.Column="0"
-                               Grid.ColumnSpan="2" Orientation="Horizontal">
+                    <!-- Star column: the field follows the pane width instead of a fixed 420px. -->
+                    <Grid x:Name="panelImageOptionsOutput" Grid.Row="0" Grid.Column="0"
+                          Grid.ColumnSpan="2" ColumnDefinitions="104,*,Auto,Auto">
                       <TextBlock x:Name="lblImageOutput" Text="Output:" VerticalAlignment="Center"
-                                 Width="104" Margin="0,0,6,0" />
-                      <TextBox x:Name="txtImageOutput" Width="420" Margin="0,0,6,0" />
-                      <Button x:Name="btnImageBrowseOutput" Content="Browse..." Width="80"
+                                 Margin="0,0,6,0" />
+                      <TextBox x:Name="txtImageOutput" Grid.Column="1" Margin="0,0,6,0" />
+                      <Button x:Name="btnImageBrowseOutput" Grid.Column="2" Content="Browse..." Width="80"
                               Margin="0,0,10,0" />
-                      <CheckBox x:Name="chkImageOverwrite" Content="Overwrite existing"
+                      <CheckBox x:Name="chkImageOverwrite" Grid.Column="3" Content="Overwrite existing"
                                 VerticalAlignment="Center" />
-                    </WrapPanel>
-                    <WrapPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
-                               Orientation="Horizontal" Margin="0,8,0,0">
+                    </Grid>
+                    <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                          ColumnDefinitions="104,*" Margin="0,8,0,0">
                       <TextBlock x:Name="lblImagePasscode" Text="Passcode:" VerticalAlignment="Center"
-                                 Width="104" Margin="0,0,6,0" />
-                      <TextBox x:Name="txtImagePasscode" Width="420" Classes="mono" />
-                    </WrapPanel>
+                                 Margin="0,0,6,0" />
+                      <TextBox x:Name="txtImagePasscode" Grid.Column="1" Classes="mono" />
+                    </Grid>
                     <TextBlock x:Name="lblImageExtractEngine" Grid.Row="2" Grid.Column="0"
                                Text="Extract engine:" VerticalAlignment="Top" Margin="0,12,0,0" />
                     <ComboBox x:Name="cboImageExtractEngine" Grid.Row="2" Grid.Column="1"
@@ -771,14 +772,15 @@
           <!-- ========== Log ========== -->
           <TabItem x:Name="tabLog" Header="Log">
             <Grid RowDefinitions="Auto,*">
-              <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="8,6">
-                <TextBlock x:Name="lblLogLevel" Text="Show:" VerticalAlignment="Center" />
-                <ComboBox x:Name="cboLogLevel" Width="110" />
+              <WrapPanel Grid.Row="0" Margin="8,6" Orientation="Horizontal">
+                <TextBlock x:Name="lblLogLevel" Text="Show:" VerticalAlignment="Center"
+                           Margin="0,0,8,0" />
+                <ComboBox x:Name="cboLogLevel" Width="110" Margin="0,0,8,0" />
                 <CheckBox x:Name="chkLogAutoScroll" Content="Auto-scroll" IsChecked="True"
-                          VerticalAlignment="Center" />
-                <Button x:Name="btnLogClear" Content="Clear" Width="70" />
+                          VerticalAlignment="Center" Margin="0,0,8,0" />
+                <Button x:Name="btnLogClear" Content="Clear" Width="70" Margin="0,0,8,0" />
                 <Button x:Name="btnLogOpenFolder" Content="Open log folder" Width="130" />
-              </StackPanel>
+              </WrapPanel>
               <ListBox x:Name="txtLogView" Grid.Row="1" Classes="mono" FontSize="11"
                        Background="{DynamicResource Theme.DarkBackground}"
                        BorderBrush="{DynamicResource Theme.DarkBorder}"
