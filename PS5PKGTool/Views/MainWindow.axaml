@@ -69,7 +69,7 @@
           <!-- search / preset / clear -->
           <Grid Grid.Row="0" ColumnDefinitions="520,Auto,Auto,Auto,Auto">
             <controls:SearchBox x:Name="searchLibrary" Grid.Column="0"
-                                Watermark="Search: title:, id:, size:&gt;50GB, -exclude"
+                                PlaceholderText="Search: title:, id:, size:&gt;50GB, -exclude"
                                 ToolTip.Tip="Search the PS5 library by title, ID, size and more." />
             <TextBlock x:Name="lblFilterPreset" Grid.Column="1" Classes="caption"
                        Text="Preset" Margin="12,0,6,0" VerticalAlignment="Center" />
@@ -159,7 +159,7 @@
 
       <!-- Workspace pane -->
       <Grid x:Name="splitMainPane2" Grid.Row="2">
-        <TabControl x:Name="tabsWorkspace" SelectedIndex="0">
+        <TabControl x:Name="tabsWorkspace" SelectedIndex="0" TabStripPlacement="Left">
 
           <!-- ========== General ========== -->
           <TabItem x:Name="tabWorkspaceGeneral" Header="General">
@@ -185,14 +185,7 @@
                     <controls:SectionPanel x:Name="sectionIcon" Grid.Column="0"
                                            Header="Icon (512 x 512)" Margin="4">
                       <Border Background="{DynamicResource Theme.DarkBackground}">
-                        <Image x:Name="pictureIcon" Stretch="Uniform">
-                          <Image.ContextMenu>
-                            <ContextMenu x:Name="contextArtwork">
-                              <MenuItem x:Name="menuArtworkSaveThis" Header="Save This Image..." />
-                              <MenuItem x:Name="menuArtworkSaveAll" Header="Save All Artwork..." />
-                            </ContextMenu>
-                          </Image.ContextMenu>
-                        </Image>
+                        <Image x:Name="pictureIcon" Stretch="Uniform" />
                       </Border>
                     </controls:SectionPanel>
                     <GridSplitter Grid.Column="1" ResizeDirection="Columns" />
@@ -200,34 +193,13 @@
                                            Header="Background Art (PIC0 / PIC1 / PIC2)" Margin="4">
                       <TabControl x:Name="tabsBackgrounds" SelectedIndex="0">
                         <TabItem x:Name="tabPic0" Header="PIC0">
-                          <Image x:Name="pictureBackground0" Stretch="Uniform">
-                            <Image.ContextMenu>
-                              <ContextMenu>
-                                <MenuItem x:Name="menuArtworkSaveThis2" Header="Save This Image..." />
-                                <MenuItem x:Name="menuArtworkSaveAll2" Header="Save All Artwork..." />
-                              </ContextMenu>
-                            </Image.ContextMenu>
-                          </Image>
+                          <Image x:Name="pictureBackground0" Stretch="Uniform" />
                         </TabItem>
                         <TabItem x:Name="tabPic1" Header="PIC1">
-                          <Image x:Name="pictureBackground1" Stretch="Uniform">
-                            <Image.ContextMenu>
-                              <ContextMenu>
-                                <MenuItem x:Name="menuArtworkSaveThis3" Header="Save This Image..." />
-                                <MenuItem x:Name="menuArtworkSaveAll3" Header="Save All Artwork..." />
-                              </ContextMenu>
-                            </Image.ContextMenu>
-                          </Image>
+                          <Image x:Name="pictureBackground1" Stretch="Uniform" />
                         </TabItem>
                         <TabItem x:Name="tabPic2" Header="PIC2">
-                          <Image x:Name="pictureBackground2" Stretch="Uniform">
-                            <Image.ContextMenu>
-                              <ContextMenu>
-                                <MenuItem x:Name="menuArtworkSaveThis4" Header="Save This Image..." />
-                                <MenuItem x:Name="menuArtworkSaveAll4" Header="Save All Artwork..." />
-                              </ContextMenu>
-                            </Image.ContextMenu>
-                          </Image>
+                          <Image x:Name="pictureBackground2" Stretch="Uniform" />
                         </TabItem>
                       </TabControl>
                     </controls:SectionPanel>
@@ -257,7 +229,7 @@
                               Margin="10,0,0,0" VerticalAlignment="Center" />
                     <CheckBox x:Name="chkTrophyShowHidden" Grid.Column="6" Content="Show hidden"
                               IsChecked="True" Margin="14,0,0,0" VerticalAlignment="Center" />
-                    <controls:SearchBox x:Name="searchTrophy" Grid.Column="8" Watermark="Search trophies"
+                    <controls:SearchBox x:Name="searchTrophy" Grid.Column="8" PlaceholderText="Search trophies"
                                         HorizontalAlignment="Stretch" MaxWidth="420" />
                   </Grid>
                   <controls:TableView x:Name="gridTrophies" Grid.Row="2" RowHeight="48">
@@ -283,7 +255,7 @@
                     <Button x:Name="btnUdsCopySelected" Grid.Column="1" Content="Copy Selected"
                             Width="120" Margin="6,0,0,0" />
                     <controls:SearchBox x:Name="searchUds" Grid.Column="3"
-                                        Watermark="Search events, stats, enums, rules"
+                                        PlaceholderText="Search events, stats, enums, rules"
                                         Width="292" HorizontalAlignment="Right" />
                   </Grid>
                   <TabControl x:Name="tabsUds" Grid.Row="2" SelectedIndex="0">
@@ -342,7 +314,7 @@
                             ColumnDefinitions="*,5,1.1*">
                         <Grid x:Name="fileListPanel" Grid.Column="0" RowDefinitions="Auto,*">
                           <controls:SearchBox x:Name="searchFileFilter" Grid.Row="0"
-                                              Watermark="Search files (all folders)" Margin="4,4,4,0" />
+                                              PlaceholderText="Search files (all folders)" Margin="4,4,4,0" />
                           <controls:TableView x:Name="listFiles" Grid.Row="1" ShowGridLines="False"
                                               Margin="0,4,0,0">
                             <controls:TableView.ContextMenu>
@@ -413,7 +385,7 @@
                     <Button x:Name="btnExecHash" Grid.Column="3" Content="SHA-256..." Width="130"
                             Margin="6,0,0,0" />
                     <controls:SearchBox x:Name="searchExecutable" Grid.Column="5"
-                                        Watermark="Search modules" Width="292"
+                                        PlaceholderText="Search modules" Width="292"
                                         HorizontalAlignment="Right" />
                   </Grid>
                   <TabControl x:Name="tabsExecutable" Grid.Row="2" SelectedIndex="0">
@@ -727,7 +699,7 @@
                 <ComboBox x:Name="cboTaskGroup" Grid.Column="8" Margin="2,6" />
                 <ComboBox x:Name="cboTaskFilter" Grid.Column="9" Margin="2,6" />
                 <controls:SearchBox x:Name="searchTasks" Grid.Column="10" Margin="2,4"
-                                    Watermark="Search tasks"
+                                    PlaceholderText="Search tasks"
                                     ToolTip.Tip="Filter the task list by title or status." />
                 <Button x:Name="btnTaskToggleDetails" Grid.Column="11" Content="Details"
                         Margin="2,6" />

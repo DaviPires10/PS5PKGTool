@@ -247,7 +247,7 @@
   </Style>
 
   <Style Selector="TextBox.watermark">
-    <Setter Property="WatermarkForeground" Value="{DynamicResource Theme.DisabledText}" />
+    <Setter Property="PlaceholderForeground" Value="{DynamicResource Theme.DisabledText}" />
   </Style>
 
   <!-- ===================== Combo boxes ===================== -->

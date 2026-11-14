@@ -11,7 +11,7 @@ public class SearchBox : TextBox
     public SearchBox()
     {
         Classes.Add("search");
-        Watermark = "Search";
+        PlaceholderText = "Search";
         VerticalContentAlignment = Avalonia.Layout.VerticalAlignment.Center;
     }
 

@@ -375,7 +375,9 @@ public partial class MainWindow
             task.Status is PackageTaskStatus.Running or PackageTaskStatus.Queued);
     }
 
-    private TextBox ImageOutputBox() => CurrentImageTarget switch
+    private TextBox ImageOutputBox() => ImageOutputBoxFor(CurrentImageTarget);
+
+    private TextBox ImageOutputBoxFor(ImageToolTarget? target) => target switch
     {
         ImageToolTarget.Exfat => txtOutExfat,
         ImageToolTarget.Ffpkg => txtOutFfpkg,
@@ -436,6 +438,10 @@ public partial class MainWindow
             UpdateImageOptionVisibility();
         };
         btnImageBrowseOutput.Click += (_, _) => _ = BrowseImageOutputAsync();
+        btnOutExfat.Click += (_, _) => _ = BrowseImageOutputAsync(ImageToolTarget.Exfat);
+        btnOutFfpkg.Click += (_, _) => _ = BrowseImageOutputAsync(ImageToolTarget.Ffpkg);
+        btnOutFfpfsc.Click += (_, _) => _ = BrowseImageOutputAsync(ImageToolTarget.Ffpfsc);
+        btnOutDebug.Click += (_, _) => _ = BrowseImageOutputAsync(ImageToolTarget.DebugPackage);
         btnImageRun.Click += (_, _) => RunImageAction();
         btnImageCancel.Click += (_, _) =>
         {
@@ -458,17 +464,19 @@ public partial class MainWindow
             _settings.ExtractBackend = SelectedExtractBackend().Id;
     }
 
-    private async Task BrowseImageOutputAsync()
+    private async Task BrowseImageOutputAsync(ImageToolTarget? explicitTarget = null)
     {
-        TextBox box = ImageOutputBox();
-        if (cboImageAction.SelectedItem as string == ImageActionExtract)
+        TextBox box = ImageOutputBoxFor(explicitTarget ?? CurrentImageTarget);
+        // The target tabs are conversion outputs only; folder picking applies to the Extract action,
+        // which uses the shared Options output field.
+        if (explicitTarget is null && cboImageAction.SelectedItem as string == ImageActionExtract)
         {
             string? folder = await PickFolderAsync("Select the extraction folder");
             if (folder is not null) box.Text = folder;
             return;
         }
 
-        ImageToolTarget target = CurrentImageTarget ?? ImageToolTarget.Ffpfsc;
+        ImageToolTarget target = explicitTarget ?? CurrentImageTarget ?? ImageToolTarget.Ffpfsc;
         string? fileName = await PickSaveFileAsync("Select an output file", Path.GetFileName(box.Text ?? string.Empty),
             new Avalonia.Platform.Storage.FilePickerFileType(ImageTargetLabel(target))
             {

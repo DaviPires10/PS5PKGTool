@@ -1,16 +1,12 @@
-using System.Runtime.InteropServices;
-using BCnEncoder.Decoder;
-using BCnEncoder.Shared;
-using CommunityToolkit.HighPerformance;
+using ImageMagick;
 using PS5PKGTool.Core.Models;
-using SkiaSharp;
 
 namespace PS5PKGTool.Core.Services;
 
 /// <summary>
-/// DDS/BC and PNG codecs used by the details panes and thumbnails. BC textures are decoded with
-/// BCnEncoder (MIT/Unlicense) and PNGs are encoded/decoded with SkiaSharp (MIT), so the engine has no
-/// ImageSharp dependency and no license-gated or vulnerable image package.
+/// DDS/BC and PNG codecs used by the details panes and thumbnails. Both formats are decoded and
+/// encoded with ImageMagick (Magick.NET), so the engine has a single image dependency instead of a
+/// separate BC decoder and PNG codec.
 /// </summary>
 public static class Ps5ImageCodec
 {
@@ -18,11 +14,9 @@ public static class Ps5ImageCodec
     {
         ArgumentNullException.ThrowIfNull(ddsStream);
         if (!ddsStream.CanRead) throw new ArgumentException("The DDS stream must be readable.", nameof(ddsStream));
-        Memory2D<ColorRgba32> pixels = new BcDecoder().Decode2D(ddsStream);
-        using SKBitmap bitmap = CreateBitmap(pixels);
-        using SKImage image = SKImage.FromBitmap(bitmap);
-        using SKData data = image.Encode(SKEncodedImageFormat.Png, 100);
-        return data.ToArray();
+        using var image = new MagickImage(ddsStream);
+        image.Format = MagickFormat.Png;
+        return image.ToByteArray();
     }
 
     /// <summary>
@@ -33,14 +27,8 @@ public static class Ps5ImageCodec
     {
         ArgumentNullException.ThrowIfNull(ddsStream);
         if (!ddsStream.CanRead) throw new ArgumentException("The DDS stream must be readable.", nameof(ddsStream));
-        Memory2D<ColorRgba32> pixels = new BcDecoder().Decode2D(ddsStream);
-        byte[] rgba = new byte[checked(pixels.Width * pixels.Height * 4)];
-        for (int y = 0; y < pixels.Height; y++)
-        {
-            ReadOnlySpan<ColorRgba32> row = pixels.Span.GetRowSpan(y);
-            MemoryMarshal.AsBytes(row).CopyTo(rgba.AsSpan(y * pixels.Width * 4, pixels.Width * 4));
-        }
-        return (rgba, pixels.Width, pixels.Height);
+        using var image = new MagickImage(ddsStream);
+        return ToRgba(image);
     }
 
     /// <summary>
@@ -53,37 +41,29 @@ public static class Ps5ImageCodec
         if (pngBytes is null || pngBytes.Length == 0 || width <= 0 || height <= 0) return null;
         try
         {
-            using SKBitmap? source = SKBitmap.Decode(pngBytes);
-            if (source is null) return null;
-            using var target = new SKBitmap(new SKImageInfo(width, height, SKColorType.Rgba8888,
-                SKAlphaType.Unpremul));
-            using (var canvas = new SKCanvas(target))
-            {
-                canvas.Clear(SKColors.Transparent);
-                using SKImage image = SKImage.FromBitmap(source);
-                canvas.DrawImage(image, new SKRect(0, 0, width, height),
-                    new SKSamplingOptions(SKFilterMode.Linear, SKMipmapMode.Linear));
-            }
-            return Ps5ImageData.FromRgba(target.Bytes, width, height);
+            using var image = new MagickImage(pngBytes);
+            image.BackgroundColor = MagickColors.Transparent;
+            image.Alpha(AlphaAction.Set);
+            image.Resize(new MagickGeometry((uint)width, (uint)height) { IgnoreAspectRatio = true });
+            (byte[] rgba, int actualWidth, int actualHeight) = ToRgba(image);
+            return Ps5ImageData.FromRgba(rgba, actualWidth, actualHeight);
         }
-        catch (Exception ex) when (ex is ArgumentException or InvalidOperationException or
-                                   NotSupportedException or IOException)
+        catch (Exception ex) when (ex is MagickException or ArgumentException or
+                                   InvalidOperationException or IOException)
         {
             return null;
         }
     }
 
-    private static SKBitmap CreateBitmap(Memory2D<ColorRgba32> pixels)
+    private static (byte[] Rgba, int Width, int Height) ToRgba(MagickImage image)
     {
-        var bitmap = new SKBitmap(new SKImageInfo(pixels.Width, pixels.Height, SKColorType.Rgba8888,
-            SKAlphaType.Unpremul));
-        using SKPixmap pixmap = bitmap.PeekPixels();
-        Span<byte> destination = pixmap.GetPixelSpan();
-        for (int y = 0; y < pixels.Height; y++)
-        {
-            ReadOnlySpan<ColorRgba32> row = pixels.Span.GetRowSpan(y);
-            MemoryMarshal.AsBytes(row).CopyTo(destination.Slice(y * pixmap.RowBytes, pixels.Width * 4));
-        }
-        return bitmap;
+        image.Alpha(AlphaAction.Set);
+        int width = checked((int)image.Width);
+        int height = checked((int)image.Height);
+        byte[] rgba = image.GetPixels().ToByteArray(PixelMapping.RGBA)
+            ?? throw new InvalidOperationException("ImageMagick did not return the decoded pixels.");
+        if (rgba.Length != checked(width * height * 4))
+            throw new InvalidOperationException("ImageMagick returned an unexpected pixel buffer size.");
+        return (rgba, width, height);
     }
 }

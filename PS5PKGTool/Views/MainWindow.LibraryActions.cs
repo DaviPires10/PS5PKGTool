@@ -201,7 +201,7 @@ public partial class MainWindow
 
         using var bitmap = CreateBitmap(data);
         using FileStream stream = File.Create(path);
-        bitmap.Save(stream);
+        bitmap.Save(stream, PngBitmapEncoderOptions.Default);
     }
 
     private static Bitmap CreateBitmap(Ps5ImageData data)

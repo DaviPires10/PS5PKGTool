@@ -16,9 +16,8 @@
     <LibProsperoPkgProject>$(ThirdPartyRoot)LibProsperoPkg\src\LibProsperoPkg\LibProsperoPkg.csproj</LibProsperoPkgProject>
   </PropertyGroup>
   <ItemGroup>
-    <!-- MIT/Unlicense codecs: BCnEncoder core for DDS/BC, SkiaSharp for PNG (also supplied by Avalonia). -->
-    <PackageReference Include="BCnEncoder.Net" Version="2.3.0" />
-    <PackageReference Include="SkiaSharp" Version="3.119.4" />
+    <!-- ImageMagick handles both the DDS/BC textures and the PNG artwork/thumbnails. -->
+    <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="15.1.0" />
     <PackageReference Include="Oodle.NET" Version="2.2.0" />
   </ItemGroup>
   <ItemGroup>
@@ -30,9 +29,7 @@
     <ProjectReference Include="$(LibProsperoPkgProject)" />
   </ItemGroup>
   <Target Name="CheckThirdPartySubmodules" BeforeTargets="ResolveProjectReferences">
-    <Error Condition="!Exists('$(ProsperoPkgToolProject)')"
-           Text="The ProsperoPkgTool submodule is missing. Run 'git submodule update --init --recursive' in $(MSBuildThisFileDirectory)../ to fetch it." />
-    <Error Condition="!Exists('$(LibProsperoPkgProject)')"
-           Text="The LibProsperoPkg submodule is missing. Run 'git submodule update --init --recursive' in $(MSBuildThisFileDirectory)../ to fetch it." />
+    <Error Condition="!Exists('$(ProsperoPkgToolProject)')" Text="The ProsperoPkgTool submodule is missing. Run 'git submodule update --init --recursive' in $(MSBuildThisFileDirectory)../ to fetch it." />
+    <Error Condition="!Exists('$(LibProsperoPkgProject)')" Text="The LibProsperoPkg submodule is missing. Run 'git submodule update --init --recursive' in $(MSBuildThisFileDirectory)../ to fetch it." />
   </Target>
 </Project>

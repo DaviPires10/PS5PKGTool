@@ -319,7 +319,7 @@ public static class FfpfscImage
 
         public Stream OpenFile(string path)
         {
-            if (!_files.TryGetValue(Normalize(path), out PfsInode inode))
+            if (!_files.TryGetValue(Normalize(path), out PfsInode? inode))
                 throw new FileNotFoundException("The file was not found in the nested PFS image.", path);
             return new PfsFileStream(_source, checked((long)inode.FirstBlock * _blockSize), inode.Size);
         }

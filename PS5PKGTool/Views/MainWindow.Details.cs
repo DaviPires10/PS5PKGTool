@@ -78,11 +78,6 @@ public partial class MainWindow
         foreach ((Image image, string name, int index) in ArtworkSlots())
             image.ContextMenu = BuildArtworkMenu(image);
         btnArtworkSaveAll.Click += (_, _) => _ = SaveAllArtworkAsync();
-        menuArtworkSaveAll.Click += (_, _) => _ = SaveAllArtworkAsync();
-        menuArtworkSaveThis.Click += (_, _) => _ = SaveThisArtworkAsync(pictureIcon);
-        menuArtworkSaveThis2.Click += (_, _) => _ = SaveThisArtworkAsync(pictureBackground0);
-        menuArtworkSaveThis3.Click += (_, _) => _ = SaveThisArtworkAsync(pictureBackground1);
-        menuArtworkSaveThis4.Click += (_, _) => _ = SaveThisArtworkAsync(pictureBackground2);
 
         InitializeTrophies();
         InitializeActivities();
@@ -967,6 +962,7 @@ public partial class MainWindow
         menuTreeExtract.Click += (_, _) => _ = ExtractFolderAsync();
         btnFileExtractAll.Click += (_, _) => _ = ExtractAllFilesAsync();
         menuFileExtractSelected.Click += (_, _) => _ = ExtractSelectedFilesAsync();
+        menuFileExtractContained.Click += (_, _) => _ = ExtractCurrentFileAsync();
         menuFileOpenContained.Click += (_, _) =>
         {
             if (listFiles.CurrentRow?.Tag is FileBrowserEntry entry)
@@ -1253,6 +1249,45 @@ public partial class MainWindow
         }
         string? folder = await PickFolderAsync("Select a folder for the extracted files");
         if (folder is not null) await ExtractFilesAsync(files, folder);
+    }
+
+    private async Task ExtractCurrentFileAsync()
+    {
+        if (listFiles.CurrentRow?.Tag is not FileBrowserEntry entry || entry.IsDirectory) return;
+        if (_selectedGame is not { } game || !IsBrowsableFilesystem(game.SourceKind) || _isFileBusy) return;
+        string? destination = await PickSaveFileAsync("Extract file", Path.GetFileName(entry.RelativePath),
+            Avalonia.Platform.Storage.FilePickerFileTypes.All);
+        if (destination is null) return;
+
+        _fileCancellation?.Cancel();
+        _fileCancellation?.Dispose();
+        _fileCancellation = new CancellationTokenSource();
+        _isFileBusy = true;
+        UpdateOperationState();
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+            var progress = new Progress<long>(copied =>
+                SetStatus($"Extracting {Path.GetFileName(entry.RelativePath)}: {FormatBytes(copied)} / {FormatBytes(entry.Size)}"));
+            await Task.Run(() => GameFileSystem.ExtractFileAsync(game, entry.RelativePath, destination, progress,
+                _fileCancellation.Token), _fileCancellation.Token);
+            SetStatus($"Extracted {Path.GetFileName(destination)}.");
+        }
+        catch (OperationCanceledException)
+        {
+            SetStatus("Extraction cancelled.");
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidDataException or
+                                   NotSupportedException or System.ComponentModel.Win32Exception)
+        {
+            SetStatus("Extraction failed.");
+            AppDialog.ShowError(ex.Message, "Extract file");
+        }
+        finally
+        {
+            _isFileBusy = false;
+            UpdateOperationState();
+        }
     }
 
     private async Task ExtractFolderAsync()
