@@ -25,7 +25,8 @@ public partial class MainWindow
             IReadOnlyList<Ps5GameInfo> games = GroupContextGames();
             if (games.Count > 0) _ = ExportGamesCsvAsync(games, "PS5-group.csv");
         };
-        menuLibraryDelete.Click += (_, _) => _ = DeleteSelectedAsync();
+        menuLibraryDeleteFromList.Click += (_, _) => DeleteSelectedFromList();
+        menuLibraryDeleteFromDisk.Click += (_, _) => _ = DeleteSelectedFromDiskAsync();
 
         menuLibraryMoveTitle.Click += (_, _) => _ = MoveGamesToFolderAsync(MoveMode.Title);
         menuLibraryMoveTitleId.Click += (_, _) => _ = MoveGamesToFolderAsync(MoveMode.TitleId);
@@ -544,7 +545,30 @@ public partial class MainWindow
 
     // ---------------------------------------------------------------- delete to trash
 
-    private async Task DeleteSelectedAsync()
+    /// <summary>Drops the selected entries from the library list without touching any files.</summary>
+    private void DeleteSelectedFromList()
+    {
+        List<Ps5GameInfo> games = SelectedGames().ToList();
+        if (games.Count == 0) return;
+
+        foreach (Ps5GameInfo game in games)
+        {
+            string path = game.RootPath;
+            RemoveSettingPath(_settings.LibraryFolders, path);
+            RemoveSettingPath(_settings.ManualSources, path);
+            RemoveSettingPath(_settings.RecentFolders, path);
+            _detailsCache.Remove(path);
+            _games.Remove(game);
+        }
+
+        SaveSettingsQuietly();
+        _stateStore.SaveManifest(_games);
+        ApplyFilter();
+        Logger.Info($"Removed {games.Count:N0} source(s) from the list.");
+        SetStatus($"Removed {games.Count:N0} source(s) from the list (files kept).");
+    }
+
+    private async Task DeleteSelectedFromDiskAsync()
     {
         List<Ps5GameInfo> games = SelectedGames().ToList();
         if (games.Count == 0) return;

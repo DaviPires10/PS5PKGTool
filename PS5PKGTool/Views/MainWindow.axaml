@@ -128,7 +128,10 @@
                   <Separator />
                   <MenuItem x:Name="menuLibraryMoveSingle" Header="All into the Destination" />
                 </MenuItem>
-                <MenuItem x:Name="menuLibraryDelete" Header="Delete Package... (Trash)" />
+                <MenuItem x:Name="menuLibraryDelete" Header="Delete Package...">
+                  <MenuItem x:Name="menuLibraryDeleteFromList" Header="Delete from List" />
+                  <MenuItem x:Name="menuLibraryDeleteFromDisk" Header="Delete from Disk... (Trash)" />
+                </MenuItem>
                 <Separator />
                 <MenuItem x:Name="menuLibrarySaveArtwork" Header="Save Artwork..." />
                 <MenuItem x:Name="menuLibraryExport" Header="Export library (CSV)..." />
