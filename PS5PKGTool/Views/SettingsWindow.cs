@@ -488,19 +488,13 @@ internal sealed class SettingsWindow : Window
     {
         string value = (path ?? string.Empty).Trim();
         if (value.Length == 0 || !Directory.Exists(value)) return string.Empty;
-        try
-        {
-            string? root = Path.GetPathRoot(Path.GetFullPath(value));
-            if (string.IsNullOrEmpty(root)) return string.Empty;
-            var drive = new DriveInfo(root);
-            if (!drive.IsReady) return string.Empty;
-            return $"{drive.Name} {FormatBytes(drive.AvailableFreeSpace)} free";
-        }
-        catch (Exception ex) when (ex is ArgumentException or IOException or UnauthorizedAccessException or
-                                   NotSupportedException)
-        {
-            return string.Empty;
-        }
+        // Report the volume that actually holds the folder; Path.GetPathRoot alone would always
+        // resolve to "/" on Unix and show the system partition instead of the picked one.
+        string root = Ps5DiskSpace.VolumeRootOf(value);
+        if (string.IsNullOrEmpty(root)) return string.Empty;
+        long? available = Ps5DiskSpace.AvailableFreeSpace(root);
+        if (available is null) return string.Empty;
+        return $"{root} {FormatBytes(available.Value)} free";
     }
 
     private static string FormatBytes(long value)

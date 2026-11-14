@@ -74,7 +74,7 @@ public static class Ps5DiskSpace
         Ps5DiskSpaceStatus status = Ps5DiskSpaceStatus.Ok;
         foreach (VolumeUsage volume in volumes)
         {
-            volume.AvailableBytes = AvailableFreeSpace(volume.Root);
+            volume.AvailableBytes = AvailableFreeSpaceOrMax(volume.Root);
             volume.RequiredBytes = WithMargin(volume.Bytes, SafetyPercent);
             volume.Status = volume.AvailableBytes < volume.RequiredBytes
                 ? Ps5DiskSpaceStatus.Insufficient
@@ -159,7 +159,21 @@ public static class Ps5DiskSpace
         }
     }
 
-    private static long AvailableFreeSpace(string root)
+    /// <summary>
+    /// Root of the volume that actually holds <paramref name="path"/>. Unlike <see cref="Path.GetPathRoot"/>,
+    /// which collapses every Unix path to <c>/</c>, this resolves mounts so a folder on another partition is
+    /// not reported against the system volume.
+    /// </summary>
+    public static string VolumeRootOf(string path) => RootOf(path);
+
+    /// <summary>Free bytes available on <paramref name="root"/>, or null when the volume cannot be read.</summary>
+    public static long? AvailableFreeSpace(string root)
+    {
+        long bytes = AvailableFreeSpaceOrMax(root);
+        return bytes == long.MaxValue ? null : bytes;
+    }
+
+    private static long AvailableFreeSpaceOrMax(string root)
     {
         try
         {
