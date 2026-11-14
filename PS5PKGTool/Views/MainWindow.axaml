@@ -509,12 +509,11 @@
                     </Grid>
                     <TextBlock x:Name="lblImageCluster" Grid.Row="1" Grid.Column="0" Text="Cluster size:"
                                VerticalAlignment="Center" Margin="0,6,0,0" />
-                    <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="8"
-                                Margin="0,6,0,0">
-                      <ComboBox x:Name="cboImageCluster" Width="140" />
+                    <WrapPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,6,0,0">
+                      <ComboBox x:Name="cboImageCluster" Width="140" Margin="0,0,8,0" />
                       <CheckBox x:Name="chkImageAmpr" Content="Generate AMPR index"
                                 VerticalAlignment="Center" />
-                    </StackPanel>
+                    </WrapPanel>
                     <TextBlock x:Name="lblWsExfat" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
                                Text="Workspace: (set in Settings)" Classes="muted" Margin="0,8,0,0" />
                   </Grid>
@@ -534,16 +533,18 @@
                     </Grid>
                     <TextBlock x:Name="lblImageBlock" Grid.Row="1" Grid.Column="0" Text="Block size:"
                                VerticalAlignment="Center" Margin="0,6,0,0" />
-                    <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="8"
-                                Margin="0,6,0,0">
-                      <ComboBox x:Name="cboImageBlock" Width="110" />
-                      <TextBlock x:Name="lblImageFragment" Text="Fragment:" VerticalAlignment="Center" />
-                      <ComboBox x:Name="cboImageFragment" Width="110" />
-                      <TextBlock x:Name="lblImageDensity" Text="Density:" VerticalAlignment="Center" />
-                      <ComboBox x:Name="cboImageDensity" Width="140" />
-                      <TextBlock x:Name="lblImageMinFree" Text="Min free %:" VerticalAlignment="Center" />
+                    <WrapPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,6,0,0">
+                      <ComboBox x:Name="cboImageBlock" Width="110" Margin="0,0,18,0" />
+                      <TextBlock x:Name="lblImageFragment" Text="Fragment:" VerticalAlignment="Center"
+                                 Margin="0,0,6,0" />
+                      <ComboBox x:Name="cboImageFragment" Width="110" Margin="0,0,18,0" />
+                      <TextBlock x:Name="lblImageDensity" Text="Density:" VerticalAlignment="Center"
+                                 Margin="0,0,6,0" />
+                      <ComboBox x:Name="cboImageDensity" Width="140" Margin="0,0,18,0" />
+                      <TextBlock x:Name="lblImageMinFree" Text="Min free %:" VerticalAlignment="Center"
+                                 Margin="0,0,6,0" />
                       <NumericUpDown x:Name="nudImageMinFree" Width="90" Minimum="0" Maximum="100" />
-                    </StackPanel>
+                    </WrapPanel>
                     <TextBlock x:Name="lblWsFfpkg" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
                                Text="Workspace: (set in Settings)" Classes="muted" Margin="0,8,0,0" />
                   </Grid>
@@ -563,12 +564,13 @@
                     </Grid>
                     <TextBlock x:Name="lblImageLevel" Grid.Row="1" Grid.Column="0" Text="Level:"
                                VerticalAlignment="Center" Margin="0,6,0,0" />
-                    <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="8"
-                                Margin="0,6,0,0">
-                      <NumericUpDown x:Name="nudImageLevel" Width="90" Minimum="1" Maximum="22" />
-                      <TextBlock x:Name="lblImageGain" Text="Gain %:" VerticalAlignment="Center" />
+                    <WrapPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,6,0,0">
+                      <NumericUpDown x:Name="nudImageLevel" Width="90" Minimum="1" Maximum="22"
+                                     Margin="0,0,18,0" />
+                      <TextBlock x:Name="lblImageGain" Text="Gain %:" VerticalAlignment="Center"
+                                 Margin="0,0,6,0" />
                       <NumericUpDown x:Name="nudImageGain" Width="90" Minimum="0" Maximum="100" />
-                    </StackPanel>
+                    </WrapPanel>
                     <TextBlock x:Name="lblWsFfpfsc" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
                                Text="Workspace: (set in Settings)" Classes="muted" Margin="0,8,0,0" />
                   </Grid>
@@ -576,7 +578,7 @@
 
                 <!-- PKG -->
                 <TabItem x:Name="tabTargetDebug" Header="PKG">
-                  <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,*" ColumnDefinitions="110,*,Auto,220"
+                  <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,*" ColumnDefinitions="110,*,Auto,Auto"
                         Margin="10,6">
                     <TextBlock x:Name="lblOutDebug" Grid.Row="0" Grid.Column="0" Text="Output:"
                                VerticalAlignment="Center" />
@@ -610,35 +612,34 @@
 
                     <TextBlock x:Name="lblImagePlayGo" Grid.Row="3" Grid.Column="0"
                                Text="PlayGo chunks:" VerticalAlignment="Center" Margin="0,6,0,0" />
-                    <NumericUpDown x:Name="nudImagePlayGoChunks" Grid.Row="3" Grid.Column="1"
-                                   Width="110" HorizontalAlignment="Left" Margin="0,6,0,0" />
-                    <TextBlock x:Name="lblImageKrakenLevel" Grid.Row="3" Grid.Column="2"
-                               Text="Kraken level:" VerticalAlignment="Center" Margin="12,6,6,0" />
-                    <StackPanel Grid.Row="3" Grid.Column="3" Orientation="Horizontal" Spacing="8"
-                                Margin="0,6,0,0">
-                      <ComboBox x:Name="cboImageKrakenLevel" Width="110" />
+                    <!-- The trailing knobs wrap inside the full row width instead of being squeezed into a fixed column. -->
+                    <WrapPanel Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="3" Orientation="Horizontal"
+                               Margin="0,6,0,0">
+                      <NumericUpDown x:Name="nudImagePlayGoChunks" Width="110" Margin="0,0,18,0" />
+                      <TextBlock x:Name="lblImageKrakenLevel" Text="Kraken level:"
+                                 VerticalAlignment="Center" Margin="0,0,6,0" />
+                      <ComboBox x:Name="cboImageKrakenLevel" Width="110" Margin="0,0,18,0" />
                       <TextBlock x:Name="lblImageKrakenThreads" Text="Threads:"
-                                 VerticalAlignment="Center" />
+                                 VerticalAlignment="Center" Margin="0,0,6,0" />
                       <NumericUpDown x:Name="nudImageKrakenThreads" Width="90"
                                      Minimum="1" Maximum="64" />
-                    </StackPanel>
+                    </WrapPanel>
 
                     <TextBlock x:Name="lblImageDrm" Grid.Row="4" Grid.Column="0" Text="DRM:"
                                VerticalAlignment="Center" Margin="0,6,0,0" />
-                    <ComboBox x:Name="cboImageDrm" Grid.Row="4" Grid.Column="1" Width="160"
-                              HorizontalAlignment="Left" Margin="0,6,0,0" />
-                    <TextBlock x:Name="lblImageBackend" Grid.Row="4" Grid.Column="2" Text="Builder:"
-                               VerticalAlignment="Center" Margin="12,6,6,0" />
-                    <StackPanel Grid.Row="4" Grid.Column="3" Orientation="Horizontal" Spacing="8"
-                                Margin="0,6,0,0">
-                      <ComboBox x:Name="cboImageBackend" Width="150" />
+                    <WrapPanel Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="3" Orientation="Horizontal"
+                               Margin="0,6,0,0">
+                      <ComboBox x:Name="cboImageDrm" Width="160" Margin="0,0,14,0" />
+                      <TextBlock x:Name="lblImageBackend" Text="Builder:"
+                                 VerticalAlignment="Center" Margin="0,0,6,0" />
+                      <ComboBox x:Name="cboImageBackend" Width="150" Margin="0,0,14,0" />
                       <CheckBox x:Name="chkImageFakeSign" Content="Fake-sign" IsChecked="True"
-                                VerticalAlignment="Center" />
+                                VerticalAlignment="Center" Margin="0,0,12,0" />
                       <CheckBox x:Name="chkImageRightSprx" Content="right.sprx" IsChecked="True"
-                                VerticalAlignment="Center" />
+                                VerticalAlignment="Center" Margin="0,0,12,0" />
                       <CheckBox x:Name="chkImageDeterministic" Content="Deterministic"
                                 VerticalAlignment="Center" />
-                    </StackPanel>
+                    </WrapPanel>
                     <TextBlock x:Name="lblImageTemp" Grid.Row="5" Grid.Column="0"
                                Grid.ColumnSpan="4" Text="Workspace: (set in Settings)"
                                Classes="muted" Margin="0,8,0,0" />
@@ -648,21 +649,22 @@
                 <!-- Options -->
                 <TabItem x:Name="tabTargetOptions" Header="Options">
                   <Grid RowDefinitions="Auto,Auto,*" ColumnDefinitions="110,*" Margin="10,8">
-                    <StackPanel x:Name="panelImageOptionsOutput" Grid.Row="0" Grid.Column="0"
-                                Grid.ColumnSpan="2" Orientation="Horizontal" Spacing="6">
+                    <WrapPanel x:Name="panelImageOptionsOutput" Grid.Row="0" Grid.Column="0"
+                               Grid.ColumnSpan="2" Orientation="Horizontal">
                       <TextBlock x:Name="lblImageOutput" Text="Output:" VerticalAlignment="Center"
-                                 Width="104" />
-                      <TextBox x:Name="txtImageOutput" Width="560" />
-                      <Button x:Name="btnImageBrowseOutput" Content="Browse..." Width="80" />
+                                 Width="104" Margin="0,0,6,0" />
+                      <TextBox x:Name="txtImageOutput" Width="420" Margin="0,0,6,0" />
+                      <Button x:Name="btnImageBrowseOutput" Content="Browse..." Width="80"
+                              Margin="0,0,10,0" />
                       <CheckBox x:Name="chkImageOverwrite" Content="Overwrite existing"
                                 VerticalAlignment="Center" />
-                    </StackPanel>
-                    <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
-                                Orientation="Horizontal" Spacing="6" Margin="0,8,0,0">
+                    </WrapPanel>
+                    <WrapPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                               Orientation="Horizontal" Margin="0,8,0,0">
                       <TextBlock x:Name="lblImagePasscode" Text="Passcode:" VerticalAlignment="Center"
-                                 Width="104" />
-                      <TextBox x:Name="txtImagePasscode" Width="300" Classes="mono" />
-                    </StackPanel>
+                                 Width="104" Margin="0,0,6,0" />
+                      <TextBox x:Name="txtImagePasscode" Width="420" Classes="mono" />
+                    </WrapPanel>
                     <TextBlock x:Name="lblImageExtractEngine" Grid.Row="2" Grid.Column="0"
                                Text="Extract engine:" VerticalAlignment="Top" Margin="0,12,0,0" />
                     <ComboBox x:Name="cboImageExtractEngine" Grid.Row="2" Grid.Column="1"
@@ -687,31 +689,31 @@
           <!-- ========== Tasks ========== -->
           <TabItem x:Name="tabTasks" Header="Tasks">
             <Grid x:Name="tasksLayout" RowDefinitions="38,*">
-              <Grid Grid.Row="0" ColumnDefinitions="86,86,86,86,86,96,110,50,100,130,170,96,120,*"
-                    Margin="3,0">
-                <CheckBox x:Name="chkTaskAutoStart" Grid.Column="0" Content="Run queue"
-                          VerticalAlignment="Center" />
-                <Button x:Name="btnTaskStart" Grid.Column="1" Content="Start Next" Margin="2,6" />
-                <Button x:Name="btnTaskCancel" Grid.Column="2" Content="Cancel" Margin="2,6" />
-                <Button x:Name="btnTaskRetry" Grid.Column="3" Content="Retry" Margin="2,6" />
-                <Button x:Name="btnTaskRemove" Grid.Column="4" Content="Remove" Margin="2,6" />
-                <Button x:Name="btnTaskOpen" Grid.Column="5" Content="Open Output" Margin="2,6" />
-                <Button x:Name="btnTaskClear" Grid.Column="6" Content="Clear successful" Margin="2,6" />
-                <TextBlock x:Name="lblTaskGroup" Grid.Column="7" Text="Group:"
-                           VerticalAlignment="Center" />
-                <ComboBox x:Name="cboTaskGroup" Grid.Column="8" Margin="2,6" />
-                <ComboBox x:Name="cboTaskFilter" Grid.Column="9" Margin="2,6" />
-                <controls:SearchBox x:Name="searchTasks" Grid.Column="10" Margin="2,4"
+              <!-- A wrap panel keeps the task bar on screen: the fixed button widths used to add up to
+                   more than the window and push the right-hand controls off the edge. -->
+              <WrapPanel Grid.Row="0" Margin="3,0" Orientation="Horizontal">
+                <CheckBox x:Name="chkTaskAutoStart" Content="Run queue"
+                          VerticalAlignment="Center" Margin="2,0,8,0" />
+                <Button x:Name="btnTaskStart" Content="Start Next" Width="86" Margin="2,6" />
+                <Button x:Name="btnTaskCancel" Content="Cancel" Width="86" Margin="2,6" />
+                <Button x:Name="btnTaskRetry" Content="Retry" Width="86" Margin="2,6" />
+                <Button x:Name="btnTaskRemove" Content="Remove" Width="86" Margin="2,6" />
+                <Button x:Name="btnTaskOpen" Content="Open Output" Width="96" Margin="2,6" />
+                <Button x:Name="btnTaskClear" Content="Clear successful" Width="110" Margin="2,6" />
+                <TextBlock x:Name="lblTaskGroup" Text="Group:"
+                           VerticalAlignment="Center" Margin="4,0,4,0" />
+                <ComboBox x:Name="cboTaskGroup" Width="120" Margin="2,6" />
+                <ComboBox x:Name="cboTaskFilter" Width="130" Margin="2,6" />
+                <controls:SearchBox x:Name="searchTasks" Width="170" Margin="2,4"
                                     PlaceholderText="Search tasks"
                                     ToolTip.Tip="Filter the task list by title or status." />
-                <Button x:Name="btnTaskToggleDetails" Grid.Column="11" Content="Details"
+                <Button x:Name="btnTaskToggleDetails" Content="Details" Width="96"
                         Margin="2,6" />
-                <CheckBox x:Name="chkTaskFollow" Grid.Column="12" Content="Follow running"
-                          IsChecked="True" VerticalAlignment="Center" Margin="4,0,0,0" />
-                <TextBlock x:Name="lblTaskSummary" Grid.Column="13" Text="Queue is empty."
-                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
-                           Margin="6,0,0,0" />
-              </Grid>
+                <CheckBox x:Name="chkTaskFollow" Content="Follow running"
+                          IsChecked="True" VerticalAlignment="Center" Margin="6,0,10,0" />
+                <TextBlock x:Name="lblTaskSummary" Text="Queue is empty."
+                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+              </WrapPanel>
 
               <Grid x:Name="splitTasks" Grid.Row="1" RowDefinitions="*,5,*">
                 <controls:SectionPanel x:Name="sectionTasksList" Grid.Row="0" Header="Task Queue"

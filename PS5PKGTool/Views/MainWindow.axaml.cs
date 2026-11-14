@@ -225,13 +225,32 @@ public partial class MainWindow : Window
 
     private void RestoreWindowBounds()
     {
-        if (_settings.WindowWidth < 800 || _settings.WindowHeight < 600) return;
-        bool visible = Screens.All.Any(screen =>
-            screen.WorkingArea.Width >= 640 && screen.WorkingArea.Height >= 480);
-        if (!visible) return;
-        Width = _settings.WindowWidth;
-        Height = _settings.WindowHeight;
+        if (_settings.WindowWidth >= 800 && _settings.WindowHeight >= 600)
+        {
+            Width = _settings.WindowWidth;
+            Height = _settings.WindowHeight;
+        }
         if (_settings.WindowMaximized) WindowState = WindowState.Maximized;
+        ClampToScreen();
+    }
+
+    /// <summary>
+    /// Keeps the window inside the display that hosts it. The XAML default (1400x880) is wider than
+    /// many laptop screens, which used to push the right-hand controls off the desktop.
+    /// </summary>
+    private void ClampToScreen()
+    {
+        if (WindowState != WindowState.Normal) return;
+        var screen = Screens.ScreenFromWindow(this) ?? Screens.Primary;
+        if (screen is null) return;
+        double scaling = screen.Scaling > 0 ? screen.Scaling : 1;
+        double availableWidth = screen.WorkingArea.Width / scaling - 24;
+        double availableHeight = screen.WorkingArea.Height / scaling - 24;
+        if (availableWidth <= 0 || availableHeight <= 0) return;
+        MinWidth = Math.Min(MinWidth, availableWidth);
+        MinHeight = Math.Min(MinHeight, availableHeight);
+        Width = Math.Min(Width, availableWidth);
+        Height = Math.Min(Height, availableHeight);
     }
 
     private void SaveWindowBounds()

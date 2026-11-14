@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Layout;
 using Avalonia.Platform.Storage;
 using Avalonia.Media;
@@ -24,6 +25,9 @@ internal sealed class SettingsWindow : Window
     };
 
     private static readonly int[] DensityRowHeights = [18, 22, 28];
+
+    /// <summary>Shared width for every text field so the dialog keeps a single column rhythm.</summary>
+    private const double FieldWidth = 420;
 
     private readonly Func<AppSettings, (bool Success, string? Error)>? _save;
     private readonly string _originalTheme;
@@ -52,7 +56,7 @@ internal sealed class SettingsWindow : Window
     private readonly CheckBox _chkShowGridLines = new() { Content = "Show grid lines" };
     private readonly CheckBox _chkShowFilePreview = new() { Content = "Show the file preview pane in the Files tab" };
     private readonly ComboBox _cboDefaultGroup = new() { Width = 240 };
-    private readonly TextBox _txtRenameFormat = new() { Width = 420 };
+    private readonly TextBox _txtRenameFormat = new() { Width = FieldWidth };
     private readonly ComboBox _cboRenamePreset = new() { Width = 260 };
     private readonly ComboBox _cboRenameToken = new() { Width = 200 };
     private readonly TextBlock _lblRenamePreview = new() { Classes = { "muted" } };
@@ -61,11 +65,11 @@ internal sealed class SettingsWindow : Window
     private readonly NumericUpDown _nudMaxPreview = new() { Minimum = 1, Maximum = 1024, Width = 110 };
     private readonly NumericUpDown _nudHexPage = new() { Minimum = 1, Maximum = 1024, Width = 110 };
     private readonly NumericUpDown _nudThumbnailCache = new() { Minimum = 0, Maximum = 20000, Width = 110 };
-    private readonly TextBox _txtOutput = new() { Width = 480 };
-    private readonly TextBox _txtWorkspace = new() { Width = 480 };
+    private readonly TextBox _txtOutput = new() { Width = FieldWidth };
+    private readonly TextBox _txtWorkspace = new() { Width = FieldWidth };
     private readonly TextBlock _lblWorkspaceFree = new() { Classes = { "muted" } };
     private readonly ComboBox _cboDefaultBackend = new() { Width = 240 };
-    private readonly TextBox _txtPasscode = new() { Width = 480, PasswordChar = '●' };
+    private readonly TextBox _txtPasscode = new() { Width = FieldWidth, PasswordChar = '●' };
     private readonly CheckBox _chkShowPasscode = new() { Content = "Show passcode" };
     private readonly TextBlock _lblPasscodeHint = new() { TextWrapping = TextWrapping.Wrap, Classes = { "muted" } };
     private readonly CheckBox _chkOpenOutput = new() { Content = "Open the output folder after a successful task" };
@@ -120,15 +124,24 @@ internal sealed class SettingsWindow : Window
         VerticalAlignment = VerticalAlignment.Center
     };
 
-    private static StackPanel Row(params Control[] controls)
+    /// <summary>
+    /// One settings line. A wrap panel keeps trailing controls (browse buttons, checkboxes) inside the
+    /// dialog on narrow windows and at high display scaling instead of letting them run off the edge.
+    /// </summary>
+    private static WrapPanel Row(params Control[] controls)
     {
-        var panel = new StackPanel
+        var panel = new WrapPanel
         {
             Orientation = Orientation.Horizontal,
-            Spacing = 8,
             Margin = new Avalonia.Thickness(0, 3)
         };
-        foreach (Control control in controls) panel.Children.Add(control);
+        foreach (Control control in controls)
+        {
+            // WrapPanel has no spacing, so the gap lives in each child's right margin.
+            control.Margin = new Avalonia.Thickness(control.Margin.Left, control.Margin.Top,
+                control.Margin.Right + 8, control.Margin.Bottom);
+            panel.Children.Add(control);
+        }
         return panel;
     }
 
@@ -136,7 +149,12 @@ internal sealed class SettingsWindow : Window
     {
         var panel = new StackPanel { Spacing = 4, Margin = new Avalonia.Thickness(14) };
         foreach (Control control in controls) panel.Children.Add(control);
-        return new ScrollViewer { Content = panel };
+        return new ScrollViewer
+        {
+            Content = panel,
+            HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
+            VerticalScrollBarVisibility = ScrollBarVisibility.Auto
+        };
     }
 
     private void BuildUi()
