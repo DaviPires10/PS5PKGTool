@@ -564,8 +564,9 @@ public partial class MainWindow
 
             try
             {
-                if (!Directory.Exists(path) && !File.Exists(path)) { skipped++; continue; }
-                TrashService.Delete(path, permanent);
+                // An entry whose source is already gone still has to leave the list, otherwise it
+                // can never be removed; only ask the trash to act when there is something to move.
+                if (Directory.Exists(path) || File.Exists(path)) TrashService.Delete(path, permanent);
 
                 RemoveSettingPath(_settings.LibraryFolders, path);
                 RemoveSettingPath(_settings.ManualSources, path);
