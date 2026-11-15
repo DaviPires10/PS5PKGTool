@@ -9,8 +9,14 @@ namespace PS5PKGTool.Core.Services;
 /// </summary>
 public static class LibraryFileMover
 {
+    /// <summary>
+    /// True when both paths live on the same volume. <see cref="Path.GetPathRoot"/> is only usable
+    /// for this on Windows: on Unix it returns <c>/</c> for every absolute path, so a move between
+    /// two partitions looked like a rename and then failed with a cross-device error.
+    /// <see cref="Ps5DiskSpace.VolumeRootOf"/> resolves the mount that actually holds each path.
+    /// </summary>
     public static bool SameVolume(string left, string right) =>
-        string.Equals(Path.GetPathRoot(Path.GetFullPath(left)), Path.GetPathRoot(Path.GetFullPath(right)),
+        string.Equals(Ps5DiskSpace.VolumeRootOf(left), Ps5DiskSpace.VolumeRootOf(right),
             StringComparison.OrdinalIgnoreCase);
 
     public static void Move(string source, string target, CancellationToken cancellationToken,

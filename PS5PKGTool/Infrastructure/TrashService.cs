@@ -1,3 +1,4 @@
+using PS5PKGTool.Core.Services;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 
@@ -77,8 +78,9 @@ public static class TrashService
             "DeletionDate=" + DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss") + "\n");
         try
         {
-            if (Directory.Exists(path)) Directory.Move(path, target);
-            else File.Move(path, target);
+            // The trash folder (home / XDG data dir) often sits on another partition than the
+            // library, where a plain rename fails; the mover falls back to copy-then-delete.
+            LibraryFileMover.Move(path, target, CancellationToken.None);
         }
         catch
         {
