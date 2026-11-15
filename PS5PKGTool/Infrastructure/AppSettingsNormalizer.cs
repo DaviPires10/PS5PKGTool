@@ -1,3 +1,5 @@
+using PS5PKGTool.Core.Services;
+
 namespace PS5PKGTool.Infrastructure;
 
 /// <summary>
@@ -95,7 +97,7 @@ public static class AppSettingsNormalizer
     {
         var result = new List<string>();
         if (values is null) return result;
-        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var seen = new HashSet<string>(PathIdentity.Comparer);
         foreach (string? value in values)
         {
             if (string.IsNullOrWhiteSpace(value)) continue;

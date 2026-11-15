@@ -38,11 +38,11 @@ public sealed class Ps5LibraryScanner
         IReadOnlyList<Ps5GameInfo>? cached, IProgress<Ps5ScanProgress>? progress, CancellationToken cancellationToken)
     {
         var result = new Ps5ScanResult();
-        var paramPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var packagePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var ffpfscPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var filesystemImagePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var ffpkgPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var paramPaths = new HashSet<string>(PathIdentity.Comparer);
+        var packagePaths = new HashSet<string>(PathIdentity.Comparer);
+        var ffpfscPaths = new HashSet<string>(PathIdentity.Comparer);
+        var filesystemImagePaths = new HashSet<string>(PathIdentity.Comparer);
+        var ffpkgPaths = new HashSet<string>(PathIdentity.Comparer);
         // Report the current directory during discovery, throttled so the UI thread is never flooded
         // (the walk can visit tens of thousands of directories before the first source is read).
         var discoveryWatch = Stopwatch.StartNew();
@@ -75,10 +75,10 @@ public sealed class Ps5LibraryScanner
         }
 
         Dictionary<string, Ps5GameInfo> cachedByRoot = cached is null
-            ? new Dictionary<string, Ps5GameInfo>(StringComparer.OrdinalIgnoreCase)
+            ? new Dictionary<string, Ps5GameInfo>(PathIdentity.Comparer)
             : cached.Where(game => !string.IsNullOrWhiteSpace(game.RootPath))
-                .GroupBy(game => game.RootPath, StringComparer.OrdinalIgnoreCase)
-                .ToDictionary(group => group.Key, group => group.Last(), StringComparer.OrdinalIgnoreCase);
+                .GroupBy(game => game.RootPath, PathIdentity.Comparer)
+                .ToDictionary(group => group.Key, group => group.Last(), PathIdentity.Comparer);
 
         int processed = 0;
         var sources = paramPaths.Select(path => (Path: path, Kind: Ps5SourceKind.LooseDump))
@@ -86,7 +86,7 @@ public sealed class Ps5LibraryScanner
             .Concat(ffpfscPaths.Select(path => (Path: path, Kind: Ps5SourceKind.Ffpfsc)))
             .Concat(filesystemImagePaths.Select(path => (Path: path, Kind: Ps5SourceKind.FilesystemImage)))
             .Concat(ffpkgPaths.Select(path => (Path: path, Kind: Ps5SourceKind.Ffpkg)))
-            .OrderBy(source => source.Path, StringComparer.OrdinalIgnoreCase)
+            .OrderBy(source => source.Path, PathIdentity.Comparer)
             .ToArray();
         foreach ((string path, Ps5SourceKind kind) in sources)
         {

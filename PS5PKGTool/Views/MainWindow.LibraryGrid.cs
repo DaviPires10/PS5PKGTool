@@ -35,9 +35,9 @@ public partial class MainWindow
     private MenuItem? _libraryColumnMenu;
     private readonly List<(MenuItem Item, string Name)> _contextColumnItems = [];
     private readonly List<(MenuItem Item, string Name)> _viewColumnItems = [];
-    private readonly ConcurrentDictionary<string, Bitmap> _libraryThumbnails = new(StringComparer.OrdinalIgnoreCase);
-    private readonly ConcurrentDictionary<string, byte> _libraryThumbnailAttempts = new(StringComparer.OrdinalIgnoreCase);
-    private readonly Dictionary<string, TableRow> _libraryRowsByRoot = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, Bitmap> _libraryThumbnails = new(PathIdentity.Comparer);
+    private readonly ConcurrentDictionary<string, byte> _libraryThumbnailAttempts = new(PathIdentity.Comparer);
+    private readonly Dictionary<string, TableRow> _libraryRowsByRoot = new(PathIdentity.Comparer);
     private int _libraryThumbnailVersion;
 
     private void EnsureLibraryColumns()
@@ -175,7 +175,7 @@ public partial class MainWindow
     private void RestoreLibrarySelection(string[] roots, string? focusedRoot)
     {
         if (roots.Length == 0 && focusedRoot is null) return;
-        var wanted = new HashSet<string>(roots, StringComparer.OrdinalIgnoreCase);
+        var wanted = new HashSet<string>(roots, PathIdentity.Comparer);
         _suppressLibrarySelection = true;
         try
         {
@@ -185,8 +185,7 @@ public partial class MainWindow
             {
                 if (row.Tag is not Ps5GameInfo game) continue;
                 if (wanted.Contains(game.RootPath)) rows.Add(row);
-                if (focusedRoot is not null &&
-                    string.Equals(game.RootPath, focusedRoot, StringComparison.OrdinalIgnoreCase))
+                if (focusedRoot is not null && PathIdentity.Equals(game.RootPath, focusedRoot))
                     focused = row;
             }
             gridLibrary.SelectRows(rows);
@@ -456,7 +455,7 @@ public partial class MainWindow
         {
             _thumbnailQueue.Clear();
             _thumbnailQueueIndex = 0;
-            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var seen = new HashSet<string>(PathIdentity.Comparer);
             foreach (Ps5GameInfo game in ordered)
             {
                 if (_libraryThumbnails.ContainsKey(game.RootPath)) continue;

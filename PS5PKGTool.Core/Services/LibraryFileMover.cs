@@ -16,8 +16,7 @@ public static class LibraryFileMover
     /// <see cref="Ps5DiskSpace.VolumeRootOf"/> resolves the mount that actually holds each path.
     /// </summary>
     public static bool SameVolume(string left, string right) =>
-        string.Equals(Ps5DiskSpace.VolumeRootOf(left), Ps5DiskSpace.VolumeRootOf(right),
-            StringComparison.OrdinalIgnoreCase);
+        PathIdentity.Equals(Ps5DiskSpace.VolumeRootOf(left), Ps5DiskSpace.VolumeRootOf(right));
 
     public static void Move(string source, string target, CancellationToken cancellationToken,
         IProgress<PackageTaskProgress>? progress = null)

@@ -211,7 +211,7 @@ public partial class MainWindow
             List<Ps5GameInfo> ordered = group
                 .OrderBy(game => CategoryPriority(CategoryOf(game)))
                 .ThenBy(game => game.DisplayVersion, StringComparer.OrdinalIgnoreCase)
-                .ThenBy(game => game.RootPath, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(game => game.RootPath, PathIdentity.Comparer)
                 .ToList();
             for (int index = 0; index < ordered.Count; index++)
             {
@@ -300,7 +300,7 @@ public partial class MainWindow
 
         string extension = isDirectory ? string.Empty : Path.GetExtension(source);
         string raw = Path.Combine(parent, safeBase + extension);
-        if (string.Equals(raw, source, StringComparison.OrdinalIgnoreCase)) return true;
+        if (PathIdentity.Equals(raw, source)) return true;
 
         conflict = File.Exists(raw) || Directory.Exists(raw);
         target = conflict ? MakeUniquePath(raw, isDirectory) : raw;

@@ -1334,7 +1334,7 @@ public partial class MainWindow
             {
                 _fileCancellation.Token.ThrowIfCancellationRequested();
                 string target = Path.GetFullPath(Path.Combine(root, relativePath));
-                if (!target.StartsWith(rootPrefix, StringComparison.OrdinalIgnoreCase))
+                if (!target.StartsWith(rootPrefix, PathIdentity.Comparison))
                     throw new IOException("The extraction path left the destination folder.");
                 Directory.CreateDirectory(Path.GetDirectoryName(target)!);
                 long baseline = completed;

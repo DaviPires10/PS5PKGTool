@@ -146,7 +146,7 @@ public sealed class LppBackend : IPackageBackend
             }
         }
 
-        if (!string.Equals(Path.GetFullPath(produced), destination, StringComparison.OrdinalIgnoreCase))
+        if (!PathIdentity.Equals(Path.GetFullPath(produced), destination))
         {
             if (File.Exists(destination)) File.Delete(destination);
             File.Move(produced, destination);

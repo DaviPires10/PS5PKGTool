@@ -27,7 +27,7 @@ public partial class MainWindow : Window
     private readonly AppStateStore _stateStore = new();
     private readonly Ps5LibraryScanner _scanner = new();
     private readonly Ps5DetailsLoader _detailsLoader = new();
-    private readonly Dictionary<string, Ps5GameDetails> _detailsCache = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, Ps5GameDetails> _detailsCache = new(PathIdentity.Comparer);
     private readonly PackageTaskQueue _taskQueue = new();
 
     private AppSettings _settings = new();
@@ -376,7 +376,7 @@ public partial class MainWindow : Window
         bool changed = false;
         foreach (string selected in folders)
         {
-            if (!_settings.LibraryFolders.Contains(selected, StringComparer.OrdinalIgnoreCase))
+            if (!_settings.LibraryFolders.Contains(selected, PathIdentity.Comparer))
             {
                 _settings.LibraryFolders.Add(selected);
                 changed = true;
@@ -549,7 +549,7 @@ public partial class MainWindow : Window
             if (merge)
             {
                 var combined = _games.Concat(result.Games)
-                    .GroupBy(game => game.RootPath, StringComparer.OrdinalIgnoreCase)
+                    .GroupBy(game => game.RootPath, PathIdentity.Comparer)
                     .Select(group => group.Last())
                     .OrderBy(game => game.Title, StringComparer.CurrentCultureIgnoreCase);
                 _games = combined.ToList();
@@ -680,8 +680,8 @@ public partial class MainWindow : Window
         AppSettings previous = _settings;
         // Import can change manual sources without touching library folders, so compare both.
         bool libraryChanged =
-            !previous.LibraryFolders.SequenceEqual(result.Settings.LibraryFolders, StringComparer.OrdinalIgnoreCase) ||
-            !previous.ManualSources.SequenceEqual(result.Settings.ManualSources, StringComparer.OrdinalIgnoreCase) ||
+            !previous.LibraryFolders.SequenceEqual(result.Settings.LibraryFolders, PathIdentity.Comparer) ||
+            !previous.ManualSources.SequenceEqual(result.Settings.ManualSources, PathIdentity.Comparer) ||
             previous.RecursiveScan != result.Settings.RecursiveScan;
         bool presentationChanged = previous.ShowThumbnails != result.Settings.ShowThumbnails ||
                                    previous.DefaultGroupBy != result.Settings.DefaultGroupBy ||
@@ -841,7 +841,7 @@ public partial class MainWindow : Window
     private void AddRecentFolder(string path)
     {
         if (string.IsNullOrWhiteSpace(path)) return;
-        _settings.RecentFolders.RemoveAll(existing => string.Equals(existing, path, StringComparison.OrdinalIgnoreCase));
+        _settings.RecentFolders.RemoveAll(existing => PathIdentity.Equals(existing, path));
         _settings.RecentFolders.Insert(0, path);
         if (_settings.RecentFolders.Count > 10)
             _settings.RecentFolders.RemoveRange(10, _settings.RecentFolders.Count - 10);
@@ -852,7 +852,7 @@ public partial class MainWindow : Window
     private IReadOnlyList<string> ScanRoots() => _settings.LibraryFolders
         .Concat(_settings.ManualSources)
         .Where(path => !string.IsNullOrWhiteSpace(path))
-        .Distinct(StringComparer.OrdinalIgnoreCase)
+        .Distinct(PathIdentity.Comparer)
         .ToArray();
 
     private bool IsUnderLibrary(string path)
@@ -860,21 +860,19 @@ public partial class MainWindow : Window
         foreach (string folder in _settings.LibraryFolders)
         {
             if (string.IsNullOrWhiteSpace(folder)) continue;
-            string prefix = folder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-            if (path.Equals(prefix, StringComparison.OrdinalIgnoreCase) ||
-                path.StartsWith(prefix + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+            if (PathIdentity.IsSameOrUnder(path, folder))
                 return true;
         }
         return false;
     }
 
     private bool IsManualSource(string path) =>
-        _settings.ManualSources.Contains(path, StringComparer.OrdinalIgnoreCase);
+        _settings.ManualSources.Contains(path, PathIdentity.Comparer);
 
     private void RememberManualSource(string path)
     {
         if (string.IsNullOrWhiteSpace(path)) return;
-        if (!_settings.ManualSources.Contains(path, StringComparer.OrdinalIgnoreCase))
+        if (!_settings.ManualSources.Contains(path, PathIdentity.Comparer))
         {
             _settings.ManualSources.Add(path);
             SaveSettingsQuietly();

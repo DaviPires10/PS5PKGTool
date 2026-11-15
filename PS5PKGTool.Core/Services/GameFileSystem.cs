@@ -44,7 +44,7 @@ public static class GameFileSystem
         ArgumentException.ThrowIfNullOrWhiteSpace(outputPath);
         string normalized = NormalizePath(relativePath);
         string fullOutputPath = Path.GetFullPath(outputPath);
-        if (string.Equals(fullOutputPath, game.RootPath, StringComparison.OrdinalIgnoreCase))
+        if (PathIdentity.Equals(fullOutputPath, game.RootPath))
             throw new IOException("The extraction output cannot replace the source container.");
         string? outputDirectory = Path.GetDirectoryName(fullOutputPath);
         if (string.IsNullOrEmpty(outputDirectory)) throw new IOException("The extraction output has no directory.");
@@ -401,7 +401,7 @@ public static class GameFileSystem
             string fullPath = Path.GetFullPath(Path.Combine(_root,
                 NormalizePath(relativePath).Replace('/', Path.DirectorySeparatorChar)));
             string prefix = _root.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
-            if (!fullPath.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+            if (!fullPath.StartsWith(prefix, PathIdentity.Comparison))
                 throw new IOException("The requested path leaves the game root.");
             return fullPath;
         }

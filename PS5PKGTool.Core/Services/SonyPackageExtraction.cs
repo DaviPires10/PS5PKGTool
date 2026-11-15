@@ -89,7 +89,7 @@ public static class SonyPackageExtraction
         if (string.IsNullOrWhiteSpace(relative) || Path.IsPathRooted(relative)) throw new InvalidDataException("Package path is unsafe.");
         string rootFull = Path.GetFullPath(root) + Path.DirectorySeparatorChar;
         string target = Path.GetFullPath(Path.Combine(root, relative.Replace('/', Path.DirectorySeparatorChar)));
-        if (!target.StartsWith(rootFull, StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException("Package path escapes the extraction root.");
+        if (!target.StartsWith(rootFull, PathIdentity.Comparison)) throw new InvalidDataException("Package path escapes the extraction root.");
         return target;
     }
 }

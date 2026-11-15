@@ -1036,7 +1036,7 @@ public partial class MainWindow
     private static void ReplaceSettingPath(List<string> paths, string source, string target)
     {
         for (int index = 0; index < paths.Count; index++)
-            if (string.Equals(paths[index], source, StringComparison.OrdinalIgnoreCase))
+            if (PathIdentity.Equals(paths[index], source))
                 paths[index] = target;
     }
 }

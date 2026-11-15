@@ -55,7 +55,7 @@ public static class Ps5DiskSpace
 
         string workspaceRoot = RootOf(tempDirectory ?? Path.GetTempPath());
         string outputRoot = RootOf(outputPath);
-        bool sharedVolume = string.Equals(workspaceRoot, outputRoot, StringComparison.OrdinalIgnoreCase);
+        bool sharedVolume = PathIdentity.Equals(workspaceRoot, outputRoot);
 
         var volumes = new List<VolumeUsage>
         {

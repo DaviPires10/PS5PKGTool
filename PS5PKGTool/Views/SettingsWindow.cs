@@ -189,8 +189,7 @@ internal sealed class SettingsWindow : Window
             string? path = await PickFolderAsync("Select a library folder");
             if (path is null) return;
             path = AppSettingsNormalizer.NormalizePath(path);
-            if (_lstFolders.Items.Cast<string?>().Any(item =>
-                    string.Equals(item, path, StringComparison.OrdinalIgnoreCase))) return;
+            if (_lstFolders.Items.Cast<string?>().Any(item => PathIdentity.Equals(item, path))) return;
             ((List<string>)_lstFolders.ItemsSource!).Add(path);
             _lstFolders.ItemsSource = null;
             _lstFolders.ItemsSource = _draftFolders;
@@ -786,8 +785,8 @@ internal sealed class SettingsWindow : Window
     private static void AppendPathChange(List<string> changes, string label, List<string> before,
         List<string> after)
     {
-        var removed = before.Except(after, StringComparer.OrdinalIgnoreCase).ToList();
-        var added = after.Except(before, StringComparer.OrdinalIgnoreCase).ToList();
+        var removed = before.Except(after, PathIdentity.Comparer).ToList();
+        var added = after.Except(before, PathIdentity.Comparer).ToList();
         if (removed.Count > 0) changes.Add($"• {label} removed: {string.Join(", ", removed.Take(5))}");
         if (added.Count > 0) changes.Add($"• {label} added: {string.Join(", ", added.Take(5))}");
     }

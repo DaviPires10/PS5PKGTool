@@ -128,9 +128,9 @@ public sealed class Ps5DumpLocator
     private static void Deduplicate(List<string> paths)
     {
         if (paths.Count < 2) return;
-        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var seen = new HashSet<string>(PathIdentity.Comparer);
         paths.RemoveAll(path => !seen.Add(path));
-        paths.Sort(StringComparer.OrdinalIgnoreCase);
+        paths.Sort(PathIdentity.Comparer);
     }
 
     public IReadOnlyList<string> FindFfpfscFiles(string selectedPath, bool recursive,
@@ -164,7 +164,7 @@ public sealed class Ps5DumpLocator
             cancellationToken.ThrowIfCancellationRequested();
             results.Add(Path.GetFullPath(path));
         }
-        results.Sort(StringComparer.OrdinalIgnoreCase);
+        results.Sort(PathIdentity.Comparer);
         return results;
     }
 
@@ -190,14 +190,14 @@ public sealed class Ps5DumpLocator
             cancellationToken.ThrowIfCancellationRequested();
             results.Add(Path.GetFullPath(path));
         }
-        results.Sort(StringComparer.OrdinalIgnoreCase);
+        results.Sort(PathIdentity.Comparer);
         return results;
     }
 
     public IReadOnlyList<string> FindParamFiles(string selectedPath, bool recursive, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(selectedPath);
-        var results = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var results = new HashSet<string>(PathIdentity.Comparer);
         if (File.Exists(selectedPath))
         {
             string fileName = Path.GetFileName(selectedPath);
@@ -230,7 +230,7 @@ public sealed class Ps5DumpLocator
                 Path.GetFileName(parentDirectory).Equals("sce_sys", StringComparison.OrdinalIgnoreCase))
                 results.Add(Path.GetFullPath(file));
         }
-        return results.Order(StringComparer.OrdinalIgnoreCase).ToArray();
+        return results.Order(PathIdentity.Comparer).ToArray();
     }
 
     private static void AddDirect(string root, HashSet<string> results)

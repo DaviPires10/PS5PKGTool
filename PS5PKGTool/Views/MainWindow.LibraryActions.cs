@@ -343,7 +343,7 @@ public partial class MainWindow
         foreach ((Ps5GameInfo game, string source, string target) in outcome.Moved)
             RewriteGamePath(game, source, target);
         if (addToLibrary &&
-            !_settings.LibraryFolders.Contains(destinationRoot, StringComparer.OrdinalIgnoreCase))
+            !_settings.LibraryFolders.Contains(destinationRoot, PathIdentity.Comparer))
             _settings.LibraryFolders.Add(destinationRoot);
         if (outcome.Moved.Count > 0) SaveSettingsQuietly();
         _stateStore.SaveManifest(_games);
@@ -379,7 +379,7 @@ public partial class MainWindow
             }
 
             string target = Path.Combine(destinationRoot, group, LibraryFileName(game));
-            if (string.Equals(target, source, StringComparison.OrdinalIgnoreCase))
+            if (PathIdentity.Equals(target, source))
             {
                 outcome.Skipped.Add($"{LibraryFileName(game)}: already in the destination");
                 continue;
@@ -439,7 +439,7 @@ public partial class MainWindow
                 continue;
             }
             string target = Path.Combine(destinationRoot, group, name);
-            if (string.Equals(target, source, StringComparison.OrdinalIgnoreCase))
+            if (PathIdentity.Equals(target, source))
             {
                 skipped++;
                 entries.Add($"  = {name} (already in the destination)");
@@ -538,7 +538,7 @@ public partial class MainWindow
     private static string ReplacePathPrefix(string value, string source, string target)
     {
         if (string.IsNullOrEmpty(value) || value.Length <= source.Length) return value;
-        if (!value.StartsWith(source, StringComparison.OrdinalIgnoreCase)) return value;
+        if (!value.StartsWith(source, PathIdentity.Comparison)) return value;
         char next = value[source.Length];
         return next is '\\' or '/' or ':' ? target + value[source.Length..] : value;
     }
@@ -649,8 +649,8 @@ public partial class MainWindow
         if (string.IsNullOrWhiteSpace(left) || string.IsNullOrWhiteSpace(right)) return false;
         string a = Path.GetFullPath(left).TrimEnd(Path.DirectorySeparatorChar);
         string b = Path.GetFullPath(right).TrimEnd(Path.DirectorySeparatorChar);
-        return a.StartsWith(b, StringComparison.OrdinalIgnoreCase) ||
-               b.StartsWith(a, StringComparison.OrdinalIgnoreCase);
+        return a.StartsWith(b, PathIdentity.Comparison) ||
+               b.StartsWith(a, PathIdentity.Comparison);
     }
 
     private static async Task<bool> ConfirmDeleteAsync(IReadOnlyList<Ps5GameInfo> games, bool permanent)
@@ -670,7 +670,7 @@ public partial class MainWindow
     }
 
     private static void RemoveSettingPath(List<string> paths, string value) =>
-        paths.RemoveAll(path => string.Equals(path, value, StringComparison.OrdinalIgnoreCase));
+        paths.RemoveAll(path => PathIdentity.Equals(path, value));
 
     // ---------------------------------------------------------------- group scope
 

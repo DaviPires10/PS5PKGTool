@@ -37,7 +37,7 @@ public static class SonyPackageImageConversion
 
         string packageFull = Path.GetFullPath(packagePath);
         string outputFull = Path.GetFullPath(outputPath);
-        if (string.Equals(packageFull, outputFull, StringComparison.OrdinalIgnoreCase))
+        if (PathIdentity.Equals(packageFull, outputFull))
             throw new IOException("The output path must be different from the source package.");
 
         string tempRoot = Path.Combine(
@@ -77,7 +77,7 @@ public static class SonyPackageImageConversion
             cancellationToken.ThrowIfCancellationRequested();
             string relative = GameFileSystem.NormalizePath(file.RelativePath);
             string target = Path.GetFullPath(Path.Combine(tree, relative.Replace('/', Path.DirectorySeparatorChar)));
-            if (!target.StartsWith(Path.GetFullPath(tree) + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+            if (!target.StartsWith(Path.GetFullPath(tree) + Path.DirectorySeparatorChar, PathIdentity.Comparison))
                 throw new InvalidDataException("A package path escapes the extraction root.");
             Directory.CreateDirectory(Path.GetDirectoryName(target)!);
             await using Stream input = files.OpenRead(relative);
