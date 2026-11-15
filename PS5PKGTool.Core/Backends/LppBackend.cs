@@ -284,7 +284,7 @@ public sealed class LppBackend : IPackageBackend
         foreach (string file in Directory.EnumerateFiles(source))
         {
             string destination = Path.Combine(target, Path.GetFileName(file));
-            if (CreateHardLink(destination, file, IntPtr.Zero))
+            if (TryCreateHardLink(destination, file))
                 continue;
             File.Copy(file, destination); // different volume or a filesystem without hardlinks
         }
@@ -300,9 +300,35 @@ public sealed class LppBackend : IPackageBackend
         catch (UnauthorizedAccessException) { }
     }
 
+    /// <summary>
+    /// Creates a hardlink through the platform's own API. The Windows entry point is <c>kernel32</c>,
+    /// so on Linux and macOS the link comes from libc instead; when neither works the caller copies
+    /// the file. Touching <c>kernel32.dll</c> unconditionally is what made a package build fail with
+    /// "Unable to load shared library 'kernel32.dll'" on Linux.
+    /// </summary>
+    private static bool TryCreateHardLink(string link, string existingFile)
+    {
+        try
+        {
+            if (OperatingSystem.IsWindows())
+                return CreateHardLink(link, existingFile, IntPtr.Zero);
+            if (OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
+                return LinkNative(existingFile, link) == 0;
+            return false;
+        }
+        catch (Exception ex) when (ex is DllNotFoundException or EntryPointNotFoundException)
+        {
+            return false;
+        }
+    }
+
     [System.Runtime.InteropServices.DllImport("kernel32.dll",
         CharSet = System.Runtime.InteropServices.CharSet.Unicode, SetLastError = true)]
     private static extern bool CreateHardLink(string newLink, string existingFile, IntPtr securityAttributes);
+
+    /// <summary>POSIX <c>link(2)</c>: returns 0 on success and -1 with errno set on failure.</summary>
+    [System.Runtime.InteropServices.DllImport("libc", EntryPoint = "link", SetLastError = true)]
+    private static extern int LinkNative(string existingFile, string newLink);
 
     private static bool IsUnsupportedLayout(Exception ex)
     {

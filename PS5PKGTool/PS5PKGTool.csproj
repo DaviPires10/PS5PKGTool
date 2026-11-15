@@ -35,19 +35,20 @@
     <ProjectReference Include="..\PS5PKGTool.Ffpfsc\PS5PKGTool.Ffpfsc.csproj" />
     <ProjectReference Include="..\PS5PKGTool.Ufs2\PS5PKGTool.Ufs2.csproj" />
   </ItemGroup>
-  <ItemGroup>
+  <!--
+    Only the Oodle build for the host OS is shipped. Including both the Windows DLL and the
+    Linux .so in every build put a foreign binary in the output folder and asked the runtime
+    to load a library that cannot exist on that platform.
+  -->
+  <ItemGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
     <Content Include="ThirdParty\Oodle\oo2core_9_win64.dll">
       <Link>oo2core_9_win64.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
     </Content>
-    <Content Include="ThirdParty\Oodle\liboo2corelinux64.so.9">
-      <Link>liboo2corelinux64.so.9</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-    </Content>
+  </ItemGroup>
+  <ItemGroup Condition="$([MSBuild]::IsOSPlatform('Linux'))">
     <Content Include="ThirdParty\Oodle\liboo2corelinux64.so.9">
       <Link>liboo2corelinux64.so.9</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
