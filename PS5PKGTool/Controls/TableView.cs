@@ -174,7 +174,7 @@ public class TableView : UserControl
         _columns.AddRange(columns);
         _header.InvalidateVisual();
         UpdateContentWidth();
-        RefreshRows();
+        RebindRows();
     }
 
     public TableColumn? Column(string name) =>
@@ -186,7 +186,7 @@ public class TableView : UserControl
         IsGrouped = false;
         _rows.Clear();
         _rows.AddRange(rows);
-        RefreshRows();
+        RebindRows();
     }
 
     /// <summary>
@@ -225,14 +225,14 @@ public class TableView : UserControl
             if (_collapsed.Contains(key)) continue;
             foreach (T item in groupItems) _rows.Add(rowFactory(item));
         }
-        RefreshRows();
+        RebindRows();
     }
 
     public void Clear()
     {
         IsGrouped = false;
         _rows.Clear();
-        RefreshRows();
+        RebindRows();
     }
 
     public bool ToggleGroup(string key)
@@ -248,22 +248,40 @@ public class TableView : UserControl
     /// <summary>Raised with the group key when the user clicks a group header.</summary>
     public event EventHandler<string>? GroupToggled;
 
-    /// <summary>Re-applies the item source after rows changed.</summary>
+    /// <summary>
+    /// Repaints the existing rows after their cell values changed. The item source is left alone on
+    /// purpose: resetting it dropped the user's selection (and the scroll position) every time a
+    /// running task reported progress.
+    /// </summary>
     public void RefreshRows()
     {
+        UpdateContentWidth();
+        _header.InvalidateVisual();
+        InvalidateRowVisuals();
+    }
+
+    /// <summary>Re-applies the item source after the row collection itself changed.</summary>
+    private void RebindRows()
+    {
+        IReadOnlyList<TableRow> selected = SelectedRows;
+        TableRow? current = _list.SelectedItem as TableRow;
         _suppressSelection = true;
         try
         {
             _list.ItemsSource = null;
             _list.ItemsSource = _rows;
+            if (_list.SelectedItems is { } items)
+            {
+                if (current is not null && _rows.Contains(current)) items.Add(current);
+                foreach (TableRow row in selected)
+                    if (!items.Contains(row) && _rows.Contains(row)) items.Add(row);
+            }
         }
         finally
         {
             _suppressSelection = false;
         }
-        UpdateContentWidth();
-        _header.InvalidateVisual();
-        InvalidateRowVisuals();
+        RefreshRows();
     }
 
     public IReadOnlyList<TableRow> SelectedRows =>

@@ -711,7 +711,6 @@ public partial class MainWindow
     {
         IReadOnlyList<QueuedPackageTask> tasks = _taskQueue.Tasks;
         QueuedPackageTask? task = SelectedTask();
-        bool busy = task is { Status: PackageTaskStatus.Running or PackageTaskStatus.Cancelling };
 
         btnTaskStart.IsEnabled = tasks.Any(candidate => candidate.Status == PackageTaskStatus.Queued);
         btnTaskCancel.IsEnabled = task is { Status: PackageTaskStatus.Queued or PackageTaskStatus.Running };
@@ -719,7 +718,8 @@ public partial class MainWindow
         {
             Status: PackageTaskStatus.Failed or PackageTaskStatus.Cancelled or PackageTaskStatus.Interrupted
         };
-        btnTaskRemove.IsEnabled = task is not null && !busy;
+        // Remove is allowed for a running task too: the queue cancels it and drops it once it stops.
+        btnTaskRemove.IsEnabled = task is not null;
         btnTaskOpen.IsEnabled = task is not null && task.OutputPath.Length > 0;
         btnTaskClear.IsEnabled = tasks.Any(candidate => candidate.Status == PackageTaskStatus.Completed);
 

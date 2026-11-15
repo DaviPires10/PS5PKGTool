@@ -39,6 +39,7 @@ public sealed class PackageTaskQueue : IAsyncDisposable
     };
 
     private readonly List<QueuedPackageTask> _tasks = [];
+    private readonly HashSet<string> _removeWhenStopped = new(StringComparer.Ordinal);
     private readonly SemaphoreSlim _signal = new(0);
     private readonly object _gate = new();
     private readonly CancellationTokenSource _lifetime = new();
@@ -180,17 +181,51 @@ public sealed class PackageTaskQueue : IAsyncDisposable
         return true;
     }
 
+    /// <summary>
+    /// Drops a task from the queue. A task that is still running cannot disappear mid-build, so it is
+    /// cancelled first and removed once the worker stops; this keeps a single running task removable.
+    /// </summary>
     public bool Remove(string id)
     {
+        bool cancel = false;
         bool removed;
         lock (_gate)
         {
             QueuedPackageTask? task = _tasks.FirstOrDefault(candidate => string.Equals(candidate.Id, id, StringComparison.Ordinal));
-            if (task is null || task.Status is PackageTaskStatus.Running or PackageTaskStatus.Cancelling) return false;
-            removed = _tasks.Remove(task);
+            if (task is null) return false;
+            if (task.Status is PackageTaskStatus.Running or PackageTaskStatus.Cancelling)
+            {
+                _removeWhenStopped.Add(task.Id);
+                cancel = true;
+                removed = false;
+            }
+            else
+            {
+                removed = _tasks.Remove(task);
+            }
+        }
+        if (cancel)
+        {
+            if (Cancel(id)) return true;
+            // The run finished between the two locks: drop it instead of leaving a stale flag.
+            lock (_gate)
+            {
+                _removeWhenStopped.Remove(id);
+                removed = _tasks.RemoveAll(task => string.Equals(task.Id, id, StringComparison.Ordinal)) > 0;
+            }
         }
         if (removed) { Notify(); Persist(); }
         return removed;
+    }
+
+    /// <summary>Removes a task whose run just finished if it was removed while running.</summary>
+    private bool RemoveAfterRun(QueuedPackageTask task)
+    {
+        lock (_gate)
+        {
+            if (!_removeWhenStopped.Remove(task.Id)) return false;
+            return _tasks.Remove(task);
+        }
     }
 
     /// <summary>
@@ -302,6 +337,7 @@ public sealed class PackageTaskQueue : IAsyncDisposable
                 QueuedPackageTask? task = TakeNext();
                 if (task is null) break;
                 await RunAsync(task, cancellationToken).ConfigureAwait(false);
+                if (RemoveAfterRun(task)) { Notify(); Persist(); }
             }
         }
     }
